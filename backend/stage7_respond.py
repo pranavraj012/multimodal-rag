@@ -1,5 +1,6 @@
 from config import call_llm
 from stage5_query import RoutingObject
+import re
 
 def generate_response(routing: RoutingObject, clips: list[dict], query: str) -> dict:
     if not clips:
@@ -9,10 +10,12 @@ def generate_response(routing: RoutingObject, clips: list[dict], query: str) -> 
         }
 
     context_parts = []
+    allowed_ranges = []
     for clip in clips[:3]:
         text = clip.get("context_text", "").strip()
         if text:
             context_parts.append(f"[{clip['t_start']:.0f}s → {clip['t_end']:.0f}s]: {text[:500]}")
+            allowed_ranges.append(f"[{clip['t_start']:.0f}s → {clip['t_end']:.0f}s]")
     context = "\\n\\n".join(context_parts)
 
     if routing.intent == "visual" and len(context.strip()) < 40:
@@ -55,6 +58,8 @@ def generate_response(routing: RoutingObject, clips: list[dict], query: str) -> 
         answer = call_llm(
             f"""Answer the student's question using ONLY the lecture content provided below.
 Be concise (2-4 sentences). If you reference something visual, mention the timestamp.
+Only cite timestamps from these ranges: {', '.join(allowed_ranges) if allowed_ranges else 'none'}.
+Do not invent new timestamps.
 
 Lecture content:
 {context}
@@ -62,6 +67,8 @@ Lecture content:
 Student question: {query}
 Answer:"""
         )
+
+    clips = _prioritize_cited_clip(answer, clips)
 
     return {
         "answer": answer,
@@ -78,3 +85,34 @@ Answer:"""
             for c in clips
         ]
     }
+
+
+def _prioritize_cited_clip(answer: str, clips: list[dict]) -> list[dict]:
+    if not answer or not clips:
+        return clips
+
+    sec_hints = [int(m.group(1)) for m in re.finditer(r"\b(\d{1,5})s\b", answer)]
+    for m in re.finditer(r"\b(\d{1,2}):(\d{2})\b", answer):
+        sec_hints.append(int(m.group(1)) * 60 + int(m.group(2)))
+
+    # Preserve order while removing duplicates.
+    sec_hints = list(dict.fromkeys(sec_hints))
+    if not sec_hints:
+        return clips
+
+    target = sec_hints[0]
+
+    def distance_to_clip(c: dict) -> float:
+        start = float(c.get("t_start", 0.0))
+        end = float(c.get("t_end", start))
+        if start <= target <= end:
+            return 0.0
+        return min(abs(target - start), abs(target - end))
+
+    best_clip = min(clips, key=distance_to_clip)
+    if distance_to_clip(best_clip) > 90:
+        return clips
+
+    # Keep original relative order for remaining clips.
+    rest = [c for c in clips if c is not best_clip]
+    return [best_clip] + rest
