@@ -2,7 +2,7 @@ import os, json, shutil, uuid
 import time
 import math
 from pathlib import Path
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -17,7 +17,7 @@ from stage2_extract import (
     infer_visual_content_type,
 )
 from stage3_chunk import chunk_transcript, chunk_visual
-from stage4_index import index_transcript_chunks, index_visual_chunks, extract_and_store_concepts
+from stage4_index import get_or_create_collections, index_transcript_chunks, index_visual_chunks, extract_and_store_concepts
 from stage5_query import build_routing_object
 from stage6_retrieve import retrieve
 from stage7_respond import generate_response
@@ -226,4 +226,66 @@ async def analytics(course_id: str):
     return {
         "confusion_report": get_confusion_report(course_id),
         "recommendation_signals": get_recommendation_signals(course_id),
+    }
+
+
+@app.get("/lectures")
+async def list_lectures(course_id: str | None = Query(default=None)):
+    uploads_dir = Path(UPLOADS_PATH)
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+
+    # Build metadata lookup from indexed transcript chunks.
+    lecture_meta = {}
+    try:
+        transcript_col, _ = get_or_create_collections()
+        data = transcript_col.get(include=["metadatas"])
+        for meta in data.get("metadatas", []) or []:
+            lid = meta.get("lecture_id")
+            if not lid:
+                continue
+            if lid not in lecture_meta:
+                lecture_meta[lid] = {
+                    "course_id": meta.get("course_id", "general"),
+                }
+    except Exception:
+        # If index cannot be read, we still list uploaded videos.
+        pass
+
+    lectures = {}
+    for f in uploads_dir.iterdir():
+        if not f.is_file():
+            continue
+        if f.suffix.lower() in {".wav", ".mp3", ".aac", ".m4a"}:
+            continue
+        if "_" not in f.name:
+            continue
+
+        lecture_id, original_name = f.name.split("_", 1)
+        meta = lecture_meta.get(lecture_id, {"course_id": "general"})
+
+        if course_id and meta.get("course_id") != course_id:
+            continue
+
+        existing = lectures.get(lecture_id)
+        record = {
+            "lecture_id": lecture_id,
+            "course_id": meta.get("course_id", "general"),
+            "file_name": original_name,
+            "video_url": f"/videos/{f.name}",
+            "updated_at": f.stat().st_mtime,
+        }
+        if existing is None or record["updated_at"] > existing["updated_at"]:
+            lectures[lecture_id] = record
+
+    items = sorted(lectures.values(), key=lambda x: x["updated_at"], reverse=True)
+    return {
+        "lectures": [
+            {
+                "lecture_id": x["lecture_id"],
+                "course_id": x["course_id"],
+                "file_name": x["file_name"],
+                "video_url": x["video_url"],
+            }
+            for x in items
+        ]
     }

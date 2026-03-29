@@ -83,6 +83,48 @@ body {
   gap: 12px;
 }
 
+.existing-lectures {
+  width: min(680px, 92%);
+  background: #151826;
+  border: 1px solid #2e3148;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.existing-lectures label {
+  font-size: 0.78rem;
+  color: #9aa3b2;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.existing-lectures-row {
+  display: flex;
+  gap: 8px;
+}
+
+.existing-lectures-row select {
+  flex: 1;
+  background: #252836;
+  color: #e8e8e8;
+  border: 1px solid #3a3d52;
+  border-radius: 7px;
+  padding: 7px 10px;
+}
+
+.existing-lectures-row button {
+  background: #1f7664;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+
+.existing-lectures-row button:hover {
+  background: #18826e;
+}
+
 .upload-btn {
   background: #a78bfa;
   color: white;

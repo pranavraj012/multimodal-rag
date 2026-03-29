@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import "./App.css";
 
@@ -12,12 +12,35 @@ export default function App() {
   const [videoUrl, setVideoUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
+  const [lectures, setLectures] = useState([]);
+  const [selectedLectureId, setSelectedLectureId] = useState("");
 
   const [messages, setMessages] = useState([]);
   const [inputQuery, setInputQuery] = useState("");
   const [loading, setLoading] = useState(false);
 
   const playerRef = useRef(null);
+
+  const fetchLectures = async () => {
+    try {
+      const params = {};
+      if (courseId.trim()) {
+        params.course_id = courseId.trim();
+      }
+      const res = await axios.get(`${API}/lectures`, { params });
+      const items = res.data?.lectures || [];
+      setLectures(items);
+      if (!selectedLectureId && items.length > 0) {
+        setSelectedLectureId(items[0].lecture_id);
+      }
+    } catch {
+      setLectures([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchLectures();
+  }, []);
 
   const handleUpload = async (e) => {
     const file = e.target.files[0];
@@ -52,6 +75,7 @@ export default function App() {
         role: "system",
         text: `Lecture "${file.name}" loaded. Ask me anything about it!`
       }]);
+      fetchLectures();
     } catch (err) {
       setUploadProgress("❌ Error: " + (err.response?.data?.detail || err.message));
     } finally {
@@ -126,6 +150,24 @@ export default function App() {
     }
   };
 
+  const handleLoadLecture = async () => {
+    const chosen = lectures.find((l) => l.lecture_id === selectedLectureId);
+    if (!chosen) return;
+
+    setLectureId(chosen.lecture_id);
+    setCourseId(chosen.course_id || "");
+    setVideoUrl(`${API}${chosen.video_url}`);
+    setUploadProgress(`Loaded existing lecture: ${chosen.file_name}`);
+
+    try {
+      await axios.post(`${API}/session/clear`, { student_id: STUDENT_ID });
+    } catch {
+      // Ignore if session clear fails.
+    }
+
+    setMessages([{ role: "system", text: `Lecture "${chosen.file_name}" loaded from library. Ask me anything about it!` }]);
+  };
+
   const fmt = (s) => {
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
@@ -146,6 +188,21 @@ export default function App() {
         <div className="video-panel">
           {!videoUrl ? (
             <div className="upload-area">
+              {lectures.length > 0 && (
+                <div className="existing-lectures">
+                  <label>Load Existing Lecture</label>
+                  <div className="existing-lectures-row">
+                    <select value={selectedLectureId} onChange={(e) => setSelectedLectureId(e.target.value)}>
+                      {lectures.map((l) => (
+                        <option key={l.lecture_id} value={l.lecture_id}>
+                          {l.file_name} ({l.lecture_id})
+                        </option>
+                      ))}
+                    </select>
+                    <button type="button" onClick={handleLoadLecture}>Load</button>
+                  </div>
+                </div>
+              )}
               <label className="upload-btn">
                 {uploading ? "⏳ Processing..." : "📁 Upload Lecture Video"}
                 <input type="file" accept="video/*" onChange={handleUpload} disabled={uploading} hidden />
