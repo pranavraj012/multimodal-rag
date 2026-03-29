@@ -1,22 +1,83 @@
 # multimodal-rag
 
-## Tech Stack (Verified)
-- Python 3.11.4
-- FastAPI 0.135.2
-- Uvicorn 0.42.0
-- ChromaDB 1.5.5
-- NetworkX 3.6.1
-- spaCy 3.8.14
-- sentence-transformers 5.3.0
-- faster-whisper 1.2.1
-- OpenCV (cv2) 4.13.0
-- pytesseract 0.3.13
-- google-genai 1.69.0
-- Pydantic 2.12.5
-- Node.js v24.14.0
-- npm 11.9.0
-- React 19.2.4
-- Vite 8.0.1
+## System Architecture
+```mermaid
+flowchart LR
+	U[User]
+
+	subgraph CLIENT[Client]
+		FE[Frontend React + Vite]
+		VP[HTML5 Video Player]
+	end
+
+	subgraph API_LAYER[API Layer]
+		API[FastAPI Backend]
+	end
+
+	subgraph PIPELINE[Ingestion and RAG Pipeline]
+		S1[Stage 1 Ingest + Keyframes + Audio]
+		S2[Stage 2 Whisper + OCR + Sampled VLM]
+		S3[Stage 3 Fine and Coarse Chunking]
+		S4[Stage 4 Vector and Graph Indexing]
+		S5[Stage 5 Query Rewrite and Intent Routing]
+		S6[Stage 6 Retrieval Fusion and Re-ranking]
+		S7[Stage 7 Response Generation]
+		S8[Stage 8 Analytics and Feedback Signals]
+		S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> S8
+	end
+
+	subgraph DATA[Data Stores]
+		VDB[(ChromaDB)]
+		KG[(NetworkX GraphML)]
+		FR[(Frames and Uploads)]
+	end
+
+	U --> FE
+	FE -->|Upload Video| API
+	FE -->|Query + lecture_id| API
+	API --> S1
+
+	S4 --> VDB
+	S4 --> KG
+	S4 --> FR
+	S6 --> VDB
+	S6 --> KG
+	S7 --> API
+	API --> FE
+	FE -->|Clickable Timestamps| VP
+
+	classDef client fill:#E6F0FF,stroke:#2B6CB0,color:#1A365D,stroke-width:1px;
+	classDef api fill:#E6FFFA,stroke:#2C7A7B,color:#234E52,stroke-width:1px;
+	classDef stage fill:#FFFBEA,stroke:#B7791F,color:#744210,stroke-width:1px;
+	classDef data fill:#F0FFF4,stroke:#2F855A,color:#22543D,stroke-width:1px;
+
+	class FE,VP client;
+	class API api;
+	class S1,S2,S3,S4,S5,S6,S7,S8 stage;
+	class VDB,KG,FR data;
+```
+
+## Technology Stack
+### Frontend
+- React + Vite
+- Axios for API communication
+- Native HTML5 video player with timestamp seeking
+
+### Backend
+- FastAPI + Pydantic
+- faster-whisper for speech transcription
+- OpenCV + SSIM for keyframe extraction
+- pytesseract for OCR
+- Ollama or Gemini for LLM and vision tasks
+
+### Retrieval and Storage
+- sentence-transformers embeddings
+- ChromaDB for vector search
+- NetworkX GraphML for concept relationships
+
+### Runtime
+- Python 3.11+
+- Node.js 20+
 
 ## Project Summary
 Multimodal RAG system for lecture videos.
@@ -134,5 +195,6 @@ python -m pytest backend/tests/test_pipeline.py -q
 
 ## Current Implementation Notes
 - Retrieval is scoped to active lecture_id to avoid cross-lecture leakage.
+- Course ID is optional in UI/API; when omitted, backend defaults to `general` at ingest.
 - Timestamp cards in chat seek the video player directly.
 - Coarse-only timestamp pollution is filtered when fine clips exist.

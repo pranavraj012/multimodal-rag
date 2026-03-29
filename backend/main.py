@@ -63,9 +63,10 @@ def _compute_visual_llm_budget(visual_frames: int, duration_sec: float) -> int:
 @app.post("/ingest")
 async def ingest_video(
     file: UploadFile = File(...),
-    course_id: str = Form(...),
+    course_id: str | None = Form(None),
     lecture_id: str = Form(None)
 ):
+    course_id = (course_id or "general").strip() or "general"
     lecture_id = lecture_id or str(uuid.uuid4())[:8]
     video_path = f"{UPLOADS_PATH}/{lecture_id}_{file.filename}"
     audio_path = f"{UPLOADS_PATH}/{lecture_id}.wav"
@@ -148,6 +149,7 @@ async def ingest_video(
 
     return {
         "status": "success",
+        "course_id": course_id,
         "lecture_id": lecture_id,
         "video_url": f"/videos/{lecture_id}_{file.filename}",
         "stats": {
@@ -172,7 +174,7 @@ async def ingest_video(
 
 class QueryRequest(BaseModel):
     query: str
-    course_id: str
+    course_id: str | None = None
     lecture_id: str
     student_id: str
 

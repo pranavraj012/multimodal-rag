@@ -9,7 +9,7 @@ nlp = spacy.load("en_core_web_sm")
 
 def retrieve(
     routing: RoutingObject,
-    course_id: str,
+    course_id: str | None,
     session_history: list,
     top_k: int = 5,
     lecture_id: str | None = None,
@@ -21,9 +21,13 @@ def retrieve(
     raw_hits = []
 
     def _with_scope(base_conditions: list[dict]) -> dict:
-        scoped = [{"course_id": {"$eq": course_id}}] + list(base_conditions)
+        scoped = list(base_conditions)
         if lecture_id:
             scoped.append({"lecture_id": {"$eq": lecture_id}})
+        if course_id:
+            scoped.append({"course_id": {"$eq": course_id}})
+        if not scoped:
+            return {}
         return {"$and": scoped}
 
     if "transcript" in routing.search_targets:
@@ -251,7 +255,7 @@ def _increment_metadata_counter(collection, ids: list[str], counter_key: str):
 def _attach_transcript_context_to_clips(
     clips: list[dict],
     transcript_col,
-    course_id: str,
+    course_id: str | None,
     lecture_id: str | None = None,
     window_sec: float = 25.0,
 ):
@@ -263,13 +267,14 @@ def _attach_transcript_context_to_clips(
         t_start = float(clip.get("t_start", 0.0))
         t_end = float(clip.get("t_end", t_start + 10.0))
         where_conditions = [
-            {"course_id": {"$eq": course_id}},
             {"chunk_type": {"$eq": "fine"}},
             {"t_start": {"$lte": t_end + window_sec}},
             {"t_end": {"$gte": t_start - window_sec}},
         ]
         if lecture_id:
             where_conditions.append({"lecture_id": {"$eq": lecture_id}})
+        if course_id:
+            where_conditions.append({"course_id": {"$eq": course_id}})
 
         results = transcript_col.get(
             where={"$and": where_conditions},
@@ -291,18 +296,24 @@ def _attach_transcript_context_to_clips(
 
 def _fallback_visual_by_complexity(
     visual_col,
-    course_id: str,
+    course_id: str | None,
     top_k: int,
     lecture_id: str | None = None,
 ) -> list[dict]:
-    where_conditions = [{"course_id": {"$eq": course_id}}]
+    where_conditions = []
     if lecture_id:
         where_conditions.append({"lecture_id": {"$eq": lecture_id}})
+    if course_id:
+        where_conditions.append({"course_id": {"$eq": course_id}})
 
-    data = visual_col.get(
-        where={"$and": where_conditions},
-        include=["metadatas", "documents"],
-    )
+    where_clause = {"$and": where_conditions} if where_conditions else None
+    if where_clause:
+        data = visual_col.get(
+            where=where_clause,
+            include=["metadatas", "documents"],
+        )
+    else:
+        data = visual_col.get(include=["metadatas", "documents"])
     if not data or not data.get("ids"):
         return []
 

@@ -7,7 +7,7 @@ const API = "http://localhost:8000";
 const STUDENT_ID = "student_" + Math.random().toString(36).slice(2, 8);
 
 export default function App() {
-  const [courseId, setCourseId] = useState("CS101");
+  const [courseId, setCourseId] = useState("");
   const [lectureId, setLectureId] = useState("");
   const [videoUrl, setVideoUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -27,13 +27,18 @@ export default function App() {
     setUploadProgress("Uploading...");
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("course_id", courseId);
+    if (courseId.trim()) {
+      formData.append("course_id", courseId.trim());
+    }
 
     try {
       setUploadProgress("Processing video — transcribing + extracting frames (this takes a few minutes)...");
       const res = await axios.post(`${API}/ingest`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      if (res.data.course_id) {
+        setCourseId(res.data.course_id);
+      }
       setLectureId(res.data.lecture_id);
       setVideoUrl(`${API}${res.data.video_url}`);
       const timings = res.data.stats?.timings || {};
@@ -75,7 +80,7 @@ export default function App() {
     try {
       const res = await axios.post(`${API}/query`, {
         query: inputQuery,
-        course_id: courseId,
+        course_id: courseId || null,
         lecture_id: lectureId,
         student_id: STUDENT_ID,
       });
@@ -115,8 +120,8 @@ export default function App() {
       <header className="header">
         <h1>🎓 LectureRAG</h1>
         <div className="course-input">
-          <label>Course ID:</label>
-          <input value={courseId} onChange={(e) => setCourseId(e.target.value)} />
+          <label>Course ID (optional):</label>
+          <input value={courseId} onChange={(e) => setCourseId(e.target.value)} placeholder="auto: general" />
         </div>
       </header>
 
