@@ -1,0 +1,420 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d2" for="edge" attr.name="weight" attr.type="long" />
+  <key id="d1" for="node" attr.name="appearances_json" attr.type="string" />
+  <key id="d0" for="node" attr.name="course_id" attr.type="string" />
+  <graph edgedefault="directed">
+    <node id="any plant">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18]</data>
+    </node>
+    <node id="three basic things">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18]</data>
+    </node>
+    <node id="food">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 69.81, 81.19, 100.09, 0.18, 69.81, 81.19, 100.09, 0.18, 69.81, 81.19, 100.09, 0.18, 69.81, 81.19, 100.09, 0.18, 69.81, 81.19, 100.09, 0.18, 69.81, 81.19, 100.09, 0.18, 69.81, 81.19, 100.09, 0.18, 69.81, 81.19, 100.09]</data>
+    </node>
+    <node id="sunlight">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 50.66, 100.09, 0.18, 50.66, 100.09, 0.18, 50.66, 100.09, 0.18, 50.66, 100.09, 0.18, 50.66, 100.09, 0.18, 50.66, 100.09, 0.18, 50.66, 100.09, 0.18, 50.66, 100.09]</data>
+    </node>
+    <node id="carbon dioxide">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 22.39, 22.39, 0.18, 22.39, 22.39, 0.18, 22.39, 22.39, 0.18, 22.39, 22.39, 0.18, 22.39, 22.39, 0.18, 22.39, 22.39, 0.18, 22.39, 22.39, 0.18, 22.39, 22.39]</data>
+    </node>
+    <node id="water">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18]</data>
+    </node>
+    <node id="the root">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18]</data>
+    </node>
+    <node id="the plant">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 0.18, 39.55, 81.19, 81.19, 0.18, 0.18, 39.55, 81.19, 81.19, 0.18, 0.18, 39.55, 81.19, 81.19, 0.18, 0.18, 39.55, 81.19, 81.19, 0.18, 0.18, 39.55, 81.19, 81.19, 0.18, 0.18, 39.55, 81.19, 81.19, 0.18, 0.18, 39.55, 81.19, 81.19, 0.18, 0.18, 39.55, 81.19, 81.19]</data>
+    </node>
+    <node id="that">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 22.39, 22.39, 50.66, 69.81, 81.19, 81.19, 0.18, 22.39, 22.39, 50.66, 69.81, 81.19, 81.19, 0.18, 22.39, 22.39, 50.66, 69.81, 81.19, 81.19, 0.18, 22.39, 22.39, 50.66, 69.81, 81.19, 81.19, 0.18, 22.39, 22.39, 50.66, 69.81, 81.19, 81.19, 0.18, 22.39, 22.39, 50.66, 69.81, 81.19, 81.19, 0.18, 22.39, 22.39, 50.66, 69.81, 81.19, 81.19, 0.18, 22.39, 22.39, 50.66, 69.81, 81.19, 81.19]</data>
+    </node>
+    <node id="the soil">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18]</data>
+    </node>
+    <node id="the roots">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18]</data>
+    </node>
+    <node id="that water">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18]</data>
+    </node>
+    <node id="some minerals">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18]</data>
+    </node>
+    <node id="the stem">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18]</data>
+    </node>
+    <node id="the parts">
+      <data key="d0">CS101</data>
+      <data key="d1">[0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18, 0.18]</data>
+    </node>
+    <node id="nothing">
+      <data key="d0">CS101</data>
+      <data key="d1">[22.39, 22.39, 22.39, 22.39, 22.39, 22.39, 22.39, 22.39]</data>
+    </node>
+    <node id="a gas">
+      <data key="d0">CS101</data>
+      <data key="d1">[22.39, 22.39, 22.39, 22.39, 22.39, 22.39, 22.39, 22.39]</data>
+    </node>
+    <node id="the air">
+      <data key="d0">CS101</data>
+      <data key="d1">[22.39, 81.19, 22.39, 81.19, 22.39, 81.19, 22.39, 81.19, 22.39, 81.19, 22.39, 81.19, 22.39, 81.19, 22.39, 81.19]</data>
+    </node>
+    <node id="the leaf">
+      <data key="d0">CS101</data>
+      <data key="d1">[22.39, 50.66, 22.39, 50.66, 22.39, 50.66, 22.39, 50.66, 22.39, 50.66, 22.39, 50.66, 22.39, 50.66, 22.39, 50.66]</data>
+    </node>
+    <node id="a plant">
+      <data key="d0">CS101</data>
+      <data key="d1">[22.39, 22.39, 22.39, 22.39, 22.39, 22.39, 22.39, 22.39]</data>
+    </node>
+    <node id="its underside">
+      <data key="d0">CS101</data>
+      <data key="d1">[22.39, 22.39, 22.39, 22.39, 22.39, 22.39, 22.39, 22.39]</data>
+    </node>
+    <node id="little tiny pores">
+      <data key="d0">CS101</data>
+      <data key="d1">[22.39, 22.39, 22.39, 22.39, 22.39, 22.39, 22.39, 22.39]</data>
+    </node>
+    <node id="stomata">
+      <data key="d0">CS101</data>
+      <data key="d1">[22.39, 69.81, 22.39, 69.81, 22.39, 69.81, 22.39, 69.81, 22.39, 69.81, 22.39, 69.81, 22.39, 69.81, 22.39, 69.81]</data>
+    </node>
+    <node id="these stomata">
+      <data key="d0">CS101</data>
+      <data key="d1">[39.55, 39.55, 39.55, 39.55, 39.55, 39.55, 39.55, 39.55]</data>
+    </node>
+    <node id="where the carbon dioxide">
+      <data key="d0">CS101</data>
+      <data key="d1">[39.55, 39.55, 39.55, 39.55, 39.55, 39.55, 39.55, 39.55]</data>
+    </node>
+    <node id="the air enters">
+      <data key="d0">CS101</data>
+      <data key="d1">[39.55, 39.55, 39.55, 39.55, 39.55, 39.55, 39.55, 39.55]</data>
+    </node>
+    <node id="now, sunlight">
+      <data key="d0">CS101</data>
+      <data key="d1">[39.55, 39.55, 39.55, 39.55, 39.55, 39.55, 39.55, 39.55]</data>
+    </node>
+    <node id="the sun">
+      <data key="d0">CS101</data>
+      <data key="d1">[50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66]</data>
+    </node>
+    <node id="course">
+      <data key="d0">CS101</data>
+      <data key="d1">[50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66]</data>
+    </node>
+    <node id="the leaves">
+      <data key="d0">CS101</data>
+      <data key="d1">[50.66, 81.19, 50.66, 81.19, 50.66, 81.19, 50.66, 81.19, 50.66, 81.19, 50.66, 81.19, 50.66, 81.19, 50.66, 81.19]</data>
+    </node>
+    <node id="a chemical">
+      <data key="d0">CS101</data>
+      <data key="d1">[50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66]</data>
+    </node>
+    <node id="chlorophyll">
+      <data key="d0">CS101</data>
+      <data key="d1">[50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66]</data>
+    </node>
+    <node id="the chemical">
+      <data key="d0">CS101</data>
+      <data key="d1">[50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66]</data>
+    </node>
+    <node id="water, sunlight and carbon dioxide">
+      <data key="d0">CS101</data>
+      <data key="d1">[50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66]</data>
+    </node>
+    <node id="some magic chemistry">
+      <data key="d0">CS101</data>
+      <data key="d1">[50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66, 50.66]</data>
+    </node>
+    <node id="oxygen">
+      <data key="d0">CS101</data>
+      <data key="d1">[69.81, 69.81, 69.81, 69.81, 69.81, 69.81, 69.81, 69.81]</data>
+    </node>
+    <node id="sugars">
+      <data key="d0">CS101</data>
+      <data key="d1">[69.81, 69.81, 69.81, 69.81, 69.81, 69.81, 69.81, 69.81]</data>
+    </node>
+    <node id="the way">
+      <data key="d0">CS101</data>
+      <data key="d1">[69.81, 69.81, 69.81, 69.81, 69.81, 69.81, 69.81, 69.81]</data>
+    </node>
+    <node id="those pores">
+      <data key="d0">CS101</data>
+      <data key="d1">[69.81, 69.81, 69.81, 69.81, 69.81, 69.81, 69.81, 69.81]</data>
+    </node>
+    <node id="the oxygen">
+      <data key="d0">CS101</data>
+      <data key="d1">[81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19]</data>
+    </node>
+    <node id="the sugar">
+      <data key="d0">CS101</data>
+      <data key="d1">[81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19]</data>
+    </node>
+    <node id="what">
+      <data key="d0">CS101</data>
+      <data key="d1">[81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19]</data>
+    </node>
+    <node id="different parts">
+      <data key="d0">CS101</data>
+      <data key="d1">[81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19]</data>
+    </node>
+    <node id="most plants">
+      <data key="d0">CS101</data>
+      <data key="d1">[81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19]</data>
+    </node>
+    <node id="this chlorophyll">
+      <data key="d0">CS101</data>
+      <data key="d1">[81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19]</data>
+    </node>
+    <node id="photosynthesis">
+      <data key="d0">CS101</data>
+      <data key="d1">[81.19, 100.09, 81.19, 100.09, 81.19, 100.09, 81.19, 100.09, 81.19, 100.09, 81.19, 100.09, 81.19, 100.09, 81.19, 100.09]</data>
+    </node>
+    <node id="this process">
+      <data key="d0">CS101</data>
+      <data key="d1">[81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19, 81.19]</data>
+    </node>
+    <node id="this video">
+      <data key="d0">CS101</data>
+      <data key="d1">[100.09, 100.09, 100.09, 100.09, 100.09, 100.09, 100.09, 100.09]</data>
+    </node>
+    <node id="more videos">
+      <data key="d0">CS101</data>
+      <data key="d1">[100.09, 100.09, 100.09, 100.09, 100.09, 100.09, 100.09, 100.09]</data>
+    </node>
+    <node id="these">
+      <data key="d0">CS101</data>
+      <data key="d1">[100.09, 100.09, 100.09, 100.09, 100.09, 100.09, 100.09, 100.09]</data>
+    </node>
+    <node id="the channel">
+      <data key="d0">CS101</data>
+      <data key="d1">[100.09, 100.09, 100.09, 100.09, 100.09, 100.09, 100.09, 100.09]</data>
+    </node>
+    <node id="the old new and personalized learning app">
+      <data key="d0">CS101</data>
+      <data key="d1">[100.09, 100.09, 100.09, 100.09, 100.09, 100.09, 100.09, 100.09]</data>
+    </node>
+    <edge source="any plant" target="three basic things">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="three basic things" target="food">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="food" target="sunlight">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="food" target="oxygen">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="food" target="most plants">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="food" target="this video">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="sunlight" target="carbon dioxide">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="sunlight" target="the sun">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="sunlight" target="food">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="carbon dioxide" target="water">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="carbon dioxide" target="carbon dioxide">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="carbon dioxide" target="nothing">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="water" target="the root">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="water" target="the soil">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the root" target="the plant">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the plant" target="that">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the plant" target="now, sunlight">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the plant" target="the air">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the plant" target="food">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="that" target="water">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="that" target="the air">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="that" target="stomata">
+      <data key="d2">16</data>
+    </edge>
+    <edge source="that" target="the leaf">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="that" target="the oxygen">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="that" target="the leaves">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the soil" target="the roots">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the roots" target="that water">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="that water" target="some minerals">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="some minerals" target="the stem">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the stem" target="the parts">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the parts" target="the plant">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="nothing" target="a gas">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="a gas" target="that">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the air" target="the leaf">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the air" target="the sugar">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the leaf" target="a plant">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the leaf" target="a chemical">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="a plant" target="its underside">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="its underside" target="little tiny pores">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="little tiny pores" target="that">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="these stomata" target="where the carbon dioxide">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="where the carbon dioxide" target="the air enters">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the air enters" target="the plant">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the sun" target="course">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="course" target="the leaves">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the leaves" target="that">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the leaves" target="what">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="a chemical" target="chlorophyll">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="chlorophyll" target="chlorophyll">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="chlorophyll" target="the chemical">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the chemical" target="water, sunlight and carbon dioxide">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="water, sunlight and carbon dioxide" target="some magic chemistry">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="oxygen" target="sugars">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="sugars" target="the way">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the way" target="those pores">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="those pores" target="that">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the oxygen" target="the plant">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the sugar" target="that">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="what" target="different parts">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="different parts" target="the plant">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="most plants" target="this chlorophyll">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="this chlorophyll" target="photosynthesis">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="photosynthesis" target="this process">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="photosynthesis" target="sunlight">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="this video" target="more videos">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="more videos" target="these">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="these" target="the channel">
+      <data key="d2">8</data>
+    </edge>
+    <edge source="the channel" target="the old new and personalized learning app">
+      <data key="d2">8</data>
+    </edge>
+  </graph>
+</graphml>
