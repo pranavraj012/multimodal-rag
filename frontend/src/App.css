@@ -288,6 +288,16 @@ body {
 .input-area button:hover:not(:disabled) { background: #9061f9; }
 .input-area button:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.input-area .clear-btn {
+  background: #252836;
+  border: 1px solid #3a3d52;
+  color: #cbd5e1;
+}
+
+.input-area .clear-btn:hover:not(:disabled) {
+  background: #2e3148;
+}
+
 /* ── Suggestions ─────────────────────────────────────────────────── */
 .suggestions {
   padding: 8px 16px 12px;

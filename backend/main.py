@@ -211,6 +211,16 @@ async def rewatch(event: RewatchEvent):
     record_clip_rewatch(event.chunk_id)
     return {"status": "recorded"}
 
+
+class ClearSessionRequest(BaseModel):
+    student_id: str
+
+
+@app.post("/session/clear")
+async def clear_session(req: ClearSessionRequest):
+    SESSIONS.pop(req.student_id, None)
+    return {"status": "cleared"}
+
 @app.get("/analytics/{course_id}")
 async def analytics(course_id: str):
     return {

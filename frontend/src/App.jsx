@@ -109,6 +109,23 @@ export default function App() {
     }
   };
 
+  const handleClearChat = async () => {
+    if (!lectureId) return;
+
+    try {
+      await axios.post(`${API}/session/clear`, { student_id: STUDENT_ID });
+    } catch {
+      // Even if backend clear fails, we still clear local chat for UX.
+    }
+
+    const systemMsg = messages.find((m) => m.role === "system");
+    if (systemMsg) {
+      setMessages([systemMsg]);
+    } else {
+      setMessages([{ role: "system", text: "Chat cleared. You can continue asking about this lecture." }]);
+    }
+  };
+
   const fmt = (s) => {
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
@@ -207,6 +224,9 @@ export default function App() {
             />
             <button onClick={handleQuery} disabled={!lectureId || loading}>
                Send
+            </button>
+            <button className="clear-btn" onClick={handleClearChat} disabled={!lectureId || loading}>
+              Clear Chat
             </button>
           </div>
 
