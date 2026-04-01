@@ -8,6 +8,16 @@ from faster_whisper import WhisperModel
 from config import _call_ollama
 
 _whisper = None
+_face_cascade = None
+
+
+def _get_face_cascade():
+    global _face_cascade
+    if _face_cascade is None:
+        _face_cascade = cv2.CascadeClassifier(
+            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+        )
+    return _face_cascade
 
 def get_whisper(force_cpu=False):
     global _whisper
@@ -22,20 +32,46 @@ def get_whisper(force_cpu=False):
     return _whisper
 
 def classify_frame(image_path: str) -> str:
+    ctype, _ = analyze_frame_quick(image_path)
+    return ctype
+
+
+def estimate_frame_priority(image_path: str) -> float:
+    """
+    Cheap heuristic score to prioritize likely information-dense frames
+    (diagrams/code/text-heavy slides) before spending VLM calls.
+    """
+    _, prio = analyze_frame_quick(image_path)
+    return prio
+
+
+def analyze_frame_quick(image_path: str) -> tuple[str, float]:
+    """
+    Single-pass cheap frame analysis used by Stage 2 planning.
+    Returns: (content_type, priority_score)
+    """
     img = cv2.imread(image_path)
+    if img is None:
+        return "visual_content", 0.0
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    face_cascade = cv2.CascadeClassifier(
-        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-    )
-    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=4)
-    if len(faces) > 0:
-        return "talking_head"
+    # Downscale for faster face detection; enough for talking-head filtering.
+    h, w = gray.shape[:2]
+    ds = cv2.resize(gray, (max(1, w // 2), max(1, h // 2)))
+    faces = _get_face_cascade().detectMultiScale(ds, scaleFactor=1.1, minNeighbors=4)
+    content_type = "talking_head" if len(faces) > 0 else "visual_content"
 
-    return "visual_content"
+    edges = cv2.Canny(gray, 60, 160)
+    edge_density = float(np.mean(edges > 0))
+    texture = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+    texture_norm = min(texture / 1200.0, 1.0)
+    priority = round(0.65 * edge_density + 0.35 * texture_norm, 4)
+
+    return content_type, priority
 
 
-def extract_frame_features(image_path: str, content_type: str, use_vlm: bool = True) -> dict:
+def extract_frame_features(image_path: str, content_type: str, use_vlm: bool = True, use_ocr: bool = True) -> dict:
     if content_type == "talking_head":
         return {
             "ocr_text": "",
@@ -44,10 +80,12 @@ def extract_frame_features(image_path: str, content_type: str, use_vlm: bool = T
             "used_vlm": False
         }
 
-    try:
-        ocr_text = pytesseract.image_to_string(Image.open(image_path)).strip()
-    except Exception:
-        ocr_text = ""
+    ocr_text = ""
+    if use_ocr:
+        try:
+            ocr_text = pytesseract.image_to_string(Image.open(image_path)).strip()
+        except Exception:
+            ocr_text = ""
 
     # Fast path: for text-heavy slides, OCR is usually enough and avoids slow VLM calls.
     if (not use_vlm) or len(ocr_text) >= 220:

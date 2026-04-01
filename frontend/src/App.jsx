@@ -168,6 +168,24 @@ export default function App() {
     setMessages([{ role: "system", text: `Lecture "${chosen.file_name}" loaded from library. Ask me anything about it!` }]);
   };
 
+  const handleClearLibrary = async () => {
+    const ok = window.confirm("Clear all saved lectures, frames, and indexes? This cannot be undone.");
+    if (!ok) return;
+
+    try {
+      await axios.post(`${API}/lectures/clear`, { remove_graphs: true });
+      setLectures([]);
+      setSelectedLectureId("");
+      setLectureId("");
+      setVideoUrl(null);
+      setMessages([{ role: "system", text: "Lecture library cleared." }]);
+      setUploadProgress("✅ Cleared saved lectures and indexes.");
+      await fetchLectures();
+    } catch (err) {
+      setUploadProgress("❌ Clear failed: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
   const fmt = (s) => {
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
@@ -181,6 +199,7 @@ export default function App() {
         <div className="course-input">
           <label>Course ID (optional):</label>
           <input value={courseId} onChange={(e) => setCourseId(e.target.value)} placeholder="auto: general" />
+          <button type="button" onClick={handleClearLibrary}>Clear Library</button>
         </div>
       </header>
 
@@ -200,6 +219,7 @@ export default function App() {
                       ))}
                     </select>
                     <button type="button" onClick={handleLoadLecture}>Load</button>
+                    <button type="button" onClick={handleClearLibrary}>Clear Library</button>
                   </div>
                 </div>
               )}

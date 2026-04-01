@@ -8,10 +8,8 @@ opencv-python-headless
 scikit-image
 pytesseract
 Pillow
-sentence-transformers
 spacy
 faster-whisper
-yt-dlp
 requests
 pydantic
 python-dotenv

@@ -101,10 +101,12 @@ body {
 .existing-lectures-row {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
 .existing-lectures-row select {
   flex: 1;
+  min-width: 0;
   background: #252836;
   color: #e8e8e8;
   border: 1px solid #3a3d52;
@@ -113,6 +115,7 @@ body {
 }
 
 .existing-lectures-row button {
+  flex: 0 0 auto;
   background: #1f7664;
   color: #fff;
   border: none;

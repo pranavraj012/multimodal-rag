@@ -16,7 +16,7 @@ Multimodal RAG for lecture videos with timestamp-grounded answers.
 ## Stack
 - Frontend: React + Vite + Axios.
 - Backend: FastAPI.
-- Retrieval: sentence-transformers + ChromaDB + NetworkX GraphML.
+- Retrieval: Ollama embeddings + ChromaDB + NetworkX GraphML.
 - Vision/OCR: OpenCV + pytesseract.
 - Speech: faster-whisper.
 
@@ -63,22 +63,29 @@ Notes:
 The backend defaults in code are:
 - OLLAMA_CHAT_MODEL=llama3.2
 - OLLAMA_VISION_MODEL=moondream
+- OLLAMA_EMBED_MODEL=qwen3-embedding:0.6b
+
+The environment template (.env.example) is set to:
+- OLLAMA_CHAT_MODEL=qwen3.5:4b
+- OLLAMA_VISION_MODEL=moondream:latest
+- OLLAMA_EMBED_MODEL=qwen3-embedding:0.6b
 
 Recommended pulls (explicit latest tags):
 
-ollama pull llama3.2:latest
+ollama pull qwen3.5:4b
 ollama pull moondream:latest
+ollama pull qwen3-embedding:0.6b
 
 Then set in .env:
 
 LLM_PROVIDER=ollama
 OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_CHAT_MODEL=llama3.2:latest
+OLLAMA_CHAT_MODEL=qwen3.5:4b
 OLLAMA_VISION_MODEL=moondream:latest
+OLLAMA_EMBED_MODEL=qwen3-embedding:0.6b
 OLLAMA_TIMEOUT_SEC=45
 
 Important:
-- .env.example currently shows llama3.1:8b, but code defaults use llama3.2.
 - If model names in .env do not match what you pulled, requests will fail.
 
 ## If You Want To Change Models
@@ -86,6 +93,7 @@ Important:
 2. Update only these values in .env:
    - OLLAMA_CHAT_MODEL
    - OLLAMA_VISION_MODEL
+   - OLLAMA_EMBED_MODEL
 3. Restart backend after changing model names.
 
 Examples:

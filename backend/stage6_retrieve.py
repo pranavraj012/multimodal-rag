@@ -84,6 +84,11 @@ def retrieve(
     if routing.temporal_anchor:
         raw_hits = _apply_temporal_anchor(raw_hits, routing)
 
+    print(
+        f"[Stage 6] intent={routing.intent} | targets={routing.search_targets} | "
+        f"raw_hits={len(raw_hits)}"
+    )
+
     seen_ids = {h.get("chunk_id") for h in session_history}
     min_score = _intent_min_score(routing.intent)
     filtered = [h for h in raw_hits if h["chunk_id"] not in seen_ids and h["score"] >= min_score]
@@ -105,14 +110,22 @@ def retrieve(
         popularity = min(clip["query_hit_count"] / 50.0, 1.0)
         recency_bonus = 0.1 if clip["t_start"] < 300 else 0.0
         temporal_bonus = _temporal_bonus(clip, routing.temporal_anchor)
-        clip["final_score"] = (
+        base_score = (
             0.5 * clip["clip_score"] +
             0.3 * popularity +
             0.15 * recency_bonus +
             0.05 * temporal_bonus
         )
+        clip["final_score"] = base_score + _heuristic_rerank_bonus(clip, routing)
 
     clips.sort(key=lambda x: x.get("final_score", 0), reverse=True)
+
+    if clips:
+        top = clips[0]
+        print(
+            f"[Stage 6] fused_clips={len(clips)} | top={top['t_start']:.1f}s-{top['t_end']:.1f}s "
+            f"score={top.get('final_score', 0.0):.3f} conf={top.get('confidence', 'LOW')}"
+        )
 
     if routing.intent in ("concept", "comparison") and clips:
         clips = _enrich_with_graph(clips, routing.rewritten_query, course_id)
@@ -162,8 +175,13 @@ def _apply_temporal_anchor(hits: list[dict], routing: RoutingObject) -> list[dic
     if "t_start" not in anchor or "t_end" not in anchor:
         return hits
 
-    a_start = float(anchor["t_start"])
-    a_end = float(anchor["t_end"])
+    try:
+        if anchor.get("t_start") is None or anchor.get("t_end") is None:
+            return hits
+        a_start = float(anchor["t_start"])
+        a_end = float(anchor["t_end"])
+    except (TypeError, ValueError):
+        return hits
     center = (a_start + a_end) / 2.0
     window = 120.0
     intent = (routing.intent or "").lower()
@@ -208,10 +226,42 @@ def _temporal_bonus(clip: dict, temporal_anchor: dict | None) -> float:
         return 0.0
     if "t_start" not in temporal_anchor or "t_end" not in temporal_anchor:
         return 0.0
+    if temporal_anchor.get("t_start") is None or temporal_anchor.get("t_end") is None:
+        return 0.0
+    try:
+        a_start = float(temporal_anchor["t_start"])
+        a_end = float(temporal_anchor["t_end"])
+    except (TypeError, ValueError):
+        return 0.0
     c_center = (float(clip.get("t_start", 0.0)) + float(clip.get("t_end", 0.0))) / 2.0
-    a_center = (float(temporal_anchor["t_start"]) + float(temporal_anchor["t_end"])) / 2.0
+    a_center = (a_start + a_end) / 2.0
     dist = abs(c_center - a_center)
     return max(0.0, 1.0 - (dist / 180.0))
+
+
+def _heuristic_rerank_bonus(clip: dict, routing: RoutingObject) -> float:
+    bonus = 0.0
+
+    modalities = clip.get("modalities", set())
+    content_type = (clip.get("content_type") or "").lower()
+    duration = max(0.0, float(clip.get("t_end", 0.0)) - float(clip.get("t_start", 0.0)))
+
+    if len(modalities) >= 2:
+        bonus += 0.08
+
+    if routing.intent == "visual":
+        if content_type in {"diagram", "code"}:
+            bonus += 0.07
+        if "visual" in modalities:
+            bonus += 0.04
+
+    # Prefer tighter clips; overly broad clips are usually less actionable.
+    if duration > 120:
+        bonus -= 0.06
+    elif duration <= 45:
+        bonus += 0.03
+
+    return bonus
 
 
 def _bump_query_hit_counts(clips: list[dict]):
@@ -379,7 +429,10 @@ def _fuse_into_clips(hits: list[dict], gap_threshold: float = 30.0) -> list[dict
             })
 
     for clip in clips:
-        clip["confidence"] = "HIGH" if len(clip["modalities"]) >= 2 else "LOW"
+        # High confidence when evidence is multimodal OR retrieval score is strong.
+        is_multimodal = len(clip["modalities"]) >= 2
+        strong_single_modality = float(clip.get("clip_score", 0.0)) >= 0.45
+        clip["confidence"] = "HIGH" if (is_multimodal or strong_single_modality) else "LOW"
 
     has_fine_clip = any("fine" in c.get("chunk_types", set()) for c in clips)
     if has_fine_clip:

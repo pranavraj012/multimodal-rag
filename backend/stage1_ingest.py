@@ -6,7 +6,12 @@ from skimage.metrics import structural_similarity as ssim
 import shutil
 import glob
 import os
-from config import SSIM_THRESHOLD, FRAMES_PATH
+from config import (
+    SSIM_THRESHOLD,
+    FRAMES_PATH,
+    KEYFRAME_MIN_SCENE_GAP_SEC,
+    KEYFRAME_SAMPLE_EVERY_N_FRAMES,
+)
 
 def get_ffmpeg_path():
     path = shutil.which("ffmpeg")
@@ -44,11 +49,15 @@ def extract_keyframes(video_path: str, lecture_id: str) -> list[dict]:
 
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
+    if not fps or fps <= 0:
+        fps = 30.0
+    sample_stride = max(1, int(KEYFRAME_SAMPLE_EVERY_N_FRAMES))
 
     keyframes = []
     prev_gray_small = None
     prev_frame = None
     prev_ts = 0.0
+    last_saved_ts = -1e9
     frame_idx = 0
 
     while cap.isOpened():
@@ -57,6 +66,12 @@ def extract_keyframes(video_path: str, lecture_id: str) -> list[dict]:
             break
 
         timestamp = frame_idx / fps
+
+        # Sample every Nth frame for SSIM checks to reduce Stage 1 cost.
+        if frame_idx % sample_stride != 0:
+            frame_idx += 1
+            continue
+
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray_small = cv2.resize(gray, (320, 180))  # Small for cheap SSIM
 
@@ -64,7 +79,7 @@ def extract_keyframes(video_path: str, lecture_id: str) -> list[dict]:
             # win_size is required for ssim when image is small
             score = ssim(prev_gray_small, gray_small, data_range=255, win_size=3)
 
-            if score < SSIM_THRESHOLD:
+            if score < SSIM_THRESHOLD and (prev_ts - last_saved_ts) >= KEYFRAME_MIN_SCENE_GAP_SEC:
                 # Scene change detected — save the PREVIOUS fully-rendered frame
                 save_path = str(out_dir / f"kf_{frame_idx:06d}_{prev_ts:.1f}s.jpg")
                 cv2.imwrite(save_path, prev_frame)
@@ -73,6 +88,7 @@ def extract_keyframes(video_path: str, lecture_id: str) -> list[dict]:
                     "timestamp": prev_ts,
                     "frame_idx": frame_idx - 1
                 })
+                last_saved_ts = prev_ts
 
         prev_gray_small = gray_small
         prev_frame = frame.copy()
@@ -90,5 +106,8 @@ def extract_keyframes(video_path: str, lecture_id: str) -> list[dict]:
         })
 
     cap.release()
-    print(f"[Stage 1] Extracted {len(keyframes)} keyframes from {frame_idx} total frames")
+    print(
+        f"[Stage 1] Extracted {len(keyframes)} keyframes from {frame_idx} total frames "
+        f"(sample_stride={sample_stride}, min_gap={KEYFRAME_MIN_SCENE_GAP_SEC}s)"
+    )
     return keyframes
