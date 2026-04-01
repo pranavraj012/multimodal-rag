@@ -17,7 +17,14 @@ from stage2_extract import (
     infer_visual_content_type,
 )
 from stage3_chunk import chunk_transcript, chunk_visual
-from stage4_index import get_or_create_collections, get_chroma, index_transcript_chunks, index_visual_chunks, extract_and_store_concepts
+from stage4_index import (
+    ensure_embedding_backend_ready,
+    get_or_create_collections,
+    get_chroma,
+    index_transcript_chunks,
+    index_visual_chunks,
+    extract_and_store_concepts,
+)
 from stage5_query import build_routing_object
 from stage6_retrieve import retrieve
 from stage7_respond import generate_response
@@ -77,10 +84,15 @@ async def ingest_video(
         shutil.copyfileobj(file.file, f)
 
     print(f"[Ingest] Starting pipeline for {file.filename}")
-    current_stage = "stage1"
+    current_stage = "preflight"
 
     t0 = time.perf_counter()
     try:
+        print("[Ingest] Preflight: checking embedding backend/model availability...")
+        ensure_embedding_backend_ready()
+        print("[Ingest] Preflight OK")
+
+        current_stage = "stage1"
         t_stage1_start = t0
 
         extract_audio(video_path, audio_path)

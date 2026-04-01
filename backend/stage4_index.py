@@ -1,16 +1,19 @@
 import json
+import time
 import networkx as nx
 from pathlib import Path
 import numpy as np
-import requests
 import chromadb
 import spacy
+from ollama import Client
 from config import (
     CHROMA_PATH,
     GRAPHS_PATH,
     OLLAMA_BASE_URL,
     OLLAMA_EMBED_BATCH_SIZE,
     OLLAMA_EMBED_MODEL,
+    OLLAMA_REQUEST_RETRIES,
+    OLLAMA_RETRY_BACKOFF_SEC,
     OLLAMA_TIMEOUT_SEC,
 )
 
@@ -22,41 +25,31 @@ class OllamaEmbedder:
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.timeout = timeout
-        self._session = requests.Session()
+        self._client = Client(host=self.base_url)
+
+    def _embed_with_retry(self, texts: list[str]):
+        attempts = max(1, int(OLLAMA_REQUEST_RETRIES))
+        backoff = max(0.0, float(OLLAMA_RETRY_BACKOFF_SEC))
+        last_error = None
+
+        for attempt in range(1, attempts + 1):
+            try:
+                return self._client.embed(model=self.model, input=texts)
+            except Exception as e:
+                last_error = e
+                if attempt < attempts:
+                    sleep_sec = backoff * attempt
+                    print(f"[Stage 4] Ollama request retry {attempt}/{attempts} after error: {e}")
+                    if sleep_sec > 0:
+                        time.sleep(sleep_sec)
+
+        raise RuntimeError(f"Ollama embed failed after {attempts} attempts: {last_error}")
 
     def encode_many(self, texts: list[str]) -> list[list[float]]:
         if not texts:
             return []
 
-        payload = {"model": self.model, "input": texts}
-        r = self._session.post(
-            f"{self.base_url}/api/embed",
-            json=payload,
-            timeout=self.timeout,
-        )
-
-        if r.status_code == 404:
-            # Compatibility fallback for older Ollama API.
-            out = []
-            for t in texts:
-                rr = self._session.post(
-                    f"{self.base_url}/api/embeddings",
-                    json={"model": self.model, "prompt": t},
-                    timeout=self.timeout,
-                )
-                if rr.status_code != 200:
-                    raise RuntimeError(f"Ollama embed error ({rr.status_code}): {rr.text}")
-                data = rr.json()
-                vec = data.get("embedding")
-                if not vec:
-                    raise RuntimeError("Ollama embeddings response missing embedding vector")
-                out.append(np.asarray(vec, dtype=float).tolist())
-            return out
-
-        if r.status_code != 200:
-            raise RuntimeError(f"Ollama embed error ({r.status_code}): {r.text}")
-
-        data = r.json()
+        data = self._embed_with_retry(texts)
         if "embeddings" in data and data["embeddings"]:
             return [np.asarray(v, dtype=float).tolist() for v in data["embeddings"]]
         if "embedding" in data:
@@ -69,6 +62,32 @@ class OllamaEmbedder:
         if not vecs:
             raise RuntimeError("Ollama embed response missing embedding vector")
         return np.asarray(vecs[0], dtype=float)
+
+
+def ensure_embedding_backend_ready():
+    """Fail fast if Ollama embedding backend/model is unavailable."""
+    client = Client(host=OLLAMA_BASE_URL)
+    try:
+        tags = client.list()
+    except Exception as e:
+        raise RuntimeError(f"Ollama is not reachable at {OLLAMA_BASE_URL}: {e}")
+
+    models = [m.get("name") or m.get("model") or "" for m in (tags.get("models", []) or [])]
+    configured = (OLLAMA_EMBED_MODEL or "").strip().lower()
+    found = any(
+        (name.lower() == configured) or (
+            ":" not in configured and name.lower().startswith(configured + ":")
+        )
+        for name in models
+    )
+    if not found:
+        raise RuntimeError(
+            f"Embedding model '{OLLAMA_EMBED_MODEL}' is not installed in Ollama. "
+            f"Installed: {models}"
+        )
+
+    # Tiny embed call verifies endpoint + model are actually usable.
+    get_embedder().encode_many(["embedding backend health-check"])
 
 
 def get_embedder():

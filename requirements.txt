@@ -11,6 +11,7 @@ Pillow
 spacy
 faster-whisper
 requests
+ollama
 pydantic
 python-dotenv
 pytest

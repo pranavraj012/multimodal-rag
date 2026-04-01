@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from ollama import Client
 
 load_dotenv()
 
@@ -17,6 +18,8 @@ OLLAMA_VISION_MODEL = os.getenv("OLLAMA_VISION_MODEL", "moondream")
 OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "qwen3-embedding:0.6b")
 OLLAMA_EMBED_BATCH_SIZE = int(os.getenv("OLLAMA_EMBED_BATCH_SIZE", "48"))
 OLLAMA_TIMEOUT_SEC = float(os.getenv("OLLAMA_TIMEOUT_SEC", "45"))
+OLLAMA_REQUEST_RETRIES = int(os.getenv("OLLAMA_REQUEST_RETRIES", "3"))
+OLLAMA_RETRY_BACKOFF_SEC = float(os.getenv("OLLAMA_RETRY_BACKOFF_SEC", "1.0"))
 VISUAL_LLM_BUDGET_MODE = os.getenv("VISUAL_LLM_BUDGET_MODE", "adaptive").lower()  # adaptive | fixed | off
 VISUAL_LLM_MAX_FRAMES = int(os.getenv("VISUAL_LLM_MAX_FRAMES", "30"))
 VISUAL_LLM_MIN_FRAMES = int(os.getenv("VISUAL_LLM_MIN_FRAMES", "8"))
@@ -71,16 +74,33 @@ def _call_gemini(prompt: str, image_path: str = None) -> str:
     return response.text
 
 def _call_ollama(prompt: str, image_path: str = None) -> str:
-    import requests, base64
-    if image_path:
-        with open(image_path, "rb") as f:
-            img_b64 = base64.b64encode(f.read()).decode()
-        payload = {"model": OLLAMA_VISION_MODEL, "prompt": prompt,
-                   "images": [img_b64], "stream": False}
-    else:
-        payload = {"model": OLLAMA_CHAT_MODEL, "prompt": prompt, "stream": False}
-    r = requests.post(f"{OLLAMA_BASE_URL}/api/generate", json=payload, timeout=OLLAMA_TIMEOUT_SEC)
-    if r.status_code == 200:
-        return r.json()["response"]
-    else:
-        return f"Error from Ollama: {r.text}"
+    import time
+
+    client = Client(host=OLLAMA_BASE_URL)
+    attempts = max(1, int(OLLAMA_REQUEST_RETRIES))
+    backoff = max(0.0, float(OLLAMA_RETRY_BACKOFF_SEC))
+    last_error = None
+
+    for attempt in range(1, attempts + 1):
+        try:
+            if image_path:
+                res = client.generate(
+                    model=OLLAMA_VISION_MODEL,
+                    prompt=prompt,
+                    images=[image_path],
+                )
+            else:
+                res = client.generate(
+                    model=OLLAMA_CHAT_MODEL,
+                    prompt=prompt,
+                )
+            return (res.get("response") or "").strip()
+        except Exception as e:
+            last_error = e
+            if attempt < attempts:
+                sleep_sec = backoff * attempt
+                print(f"[Config] Ollama retry {attempt}/{attempts} after error: {e}")
+                if sleep_sec > 0:
+                    time.sleep(sleep_sec)
+
+    return f"Error from Ollama: {last_error}"
