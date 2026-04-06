@@ -21,13 +21,18 @@ def _get_face_cascade():
 
 def get_whisper(force_cpu=False):
     global _whisper
-    # Re-instantiate if forced
     if _whisper is None or force_cpu:
-        if not force_cpu:
-            print("[Stage 2] Attempting to load Whisper model on GPU (RTX 4060)...")
-            _whisper = WhisperModel("base", device="cuda", compute_type="float16")
+        import platform
+        # Default to CPU on Mac or if forced
+        if not force_cpu and platform.system() != "Darwin":
+            try:
+                print("[Stage 2] Attempting to load Whisper model on GPU...")
+                _whisper = WhisperModel("base", device="cuda", compute_type="float16")
+            except Exception as e:
+                print(f"[Stage 2] GPU initialization failed: {e}. Falling back to CPU...")
+                _whisper = WhisperModel("base", device="cpu", compute_type="int8")
         else:
-            print("[Stage 2] Loading Whisper model on CPU...")
+            print("[Stage 2] Loading Whisper model on CPU (optimized for Mac/No-CUDA)...")
             _whisper = WhisperModel("base", device="cpu", compute_type="int8")
     return _whisper
 

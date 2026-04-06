@@ -3,7 +3,9 @@ import networkx as nx
 from pathlib import Path
 from stage5_query import RoutingObject
 from stage4_index import get_or_create_collections, get_embedder, load_graph
+from config import call_llm
 import spacy
+import re
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -101,10 +103,15 @@ def retrieve(
     if not filtered and routing.intent == "visual":
         filtered = _fallback_visual_by_complexity(visual_col, course_id, top_k, lecture_id=lecture_id)
 
-    clips = _fuse_into_clips(filtered)
+    # Infer video duration from the furthest timestamp seen in hits to scale offsets dynamically.
+    video_duration = _infer_video_duration(raw_hits)
+    fusion_gap, context_window = _adaptive_offsets(video_duration)
+    print(f"[Stage 6] video_duration≈{video_duration:.0f}s | fusion_gap={fusion_gap}s | context_window={context_window}s")
+
+    clips = _fuse_into_clips(filtered, gap_threshold=fusion_gap)
 
     if routing.intent == "visual" and clips:
-        _attach_transcript_context_to_clips(clips, transcript_col, course_id, lecture_id=lecture_id)
+        _attach_transcript_context_to_clips(clips, transcript_col, course_id, lecture_id=lecture_id, window_sec=context_window)
 
     for clip in clips:
         popularity = min(clip["query_hit_count"] / 50.0, 1.0)
@@ -130,9 +137,36 @@ def retrieve(
     if routing.intent in ("concept", "comparison") and clips:
         clips = _enrich_with_graph(clips, routing.rewritten_query, course_id)
 
+    # Apply LLM Text-based Reranking to the top subset
+    clips = clips[:top_k * 2]
+    if clips and routing.intent not in ("generative",):
+        clips = _llm_rerank_clips(clips, routing.rewritten_query)
+
     _bump_query_hit_counts(clips)
 
     return clips[:top_k]
+
+
+def _infer_video_duration(hits: list[dict]) -> float:
+    """Estimate total video length from the largest t_end seen in all raw hits."""
+    max_t = 0.0
+    for h in hits:
+        t = float(h.get("meta", {}).get("t_end", 0.0))
+        if t > max_t:
+            max_t = t
+    return max_t if max_t > 0 else 600.0  # default to 10 min if unknown
+
+
+def _adaptive_offsets(duration: float) -> tuple[float, float]:
+    """Return (fusion_gap_sec, context_window_sec) scaled to video length."""
+    if duration < 60:          # < 1 minute
+        return 10.0, 8.0
+    elif duration < 300:       # 1–5 minutes
+        return 18.0, 15.0
+    elif duration < 900:       # 5–15 minutes
+        return 25.0, 20.0
+    else:                      # 15+ minutes (lectures)
+        return 30.0, 25.0
 
 
 def _results_to_hits(results: dict, source: str) -> list[dict]:
@@ -443,6 +477,54 @@ def _fuse_into_clips(hits: list[dict], gap_threshold: float = 30.0) -> list[dict
             del clip["chunk_types"]
 
     return clips
+
+
+def _llm_rerank_clips(clips: list[dict], query: str) -> list[dict]:
+    if not clips:
+        return clips
+
+    prompt = f"Evaluate the relevance of the following {len(clips)} extracted video clips to the user query: '{query}'.\n"
+    prompt += "Assign a score from 0 to 10 for each clip, where 10 is perfectly relevant and 0 is completely irrelevant.\n"
+    prompt += "Return ONLY a valid JSON array of numbers, e.g. [8, 0, 5]. Do not include any other text.\n\n"
+
+    for i, clip in enumerate(clips):
+        text = (clip.get("context_text") or "")[:400]
+        prompt += f"--- Clip {i} ---\n{text}\n\n"
+
+    try:
+        response = call_llm(prompt).strip()
+        json_match = re.search(r"\[[\d\s,.]+\]", response)
+        if json_match:
+            scores = json.loads(json_match.group(0))
+            if len(scores) == len(clips):
+                for i, clip in enumerate(clips):
+                    llm_score = min(float(scores[i]) / 10.0, 1.0)
+                    clip["final_score"] = float(clip.get("final_score", 0.0)) + (llm_score * 0.8)
+                    
+                    # Stricter confidence ratings
+                    if llm_score >= 0.75:
+                        clip["confidence"] = "HIGH"
+                    else:
+                        clip["confidence"] = "LOW"
+                        
+                    clip["_llm_drop"] = (llm_score <= 0.2)
+            else:
+                print(f"[Stage 6] Rerank skip: Mismatched array length {len(scores)} vs {len(clips)}")
+        else:
+            print("[Stage 6] Could not parse LLM rerank JSON:", response)
+    except Exception as e:
+        print(f"[Stage 6] LLM Reranking failed: {e}")
+
+    # Drop completely irrelevant clips and sort
+    clips = [c for c in clips if not c.get("_llm_drop", False)]
+    clips.sort(key=lambda x: x.get("final_score", 0), reverse=True)
+    
+    # Dynamic Cutoff: Don't show 5 clips. Cap at 3, and drop if score significantly falls off.
+    if clips:
+        best = clips[0].get("final_score", 0)
+        clips = [c for c in clips if c.get("final_score", 0) >= best * 0.6]
+        
+    return clips[:3]
 
 
 def _enrich_with_graph(clips: list[dict], query: str, course_id: str) -> list[dict]:

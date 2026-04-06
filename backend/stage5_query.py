@@ -19,7 +19,7 @@ ROUTING = {
     "temporal":   {"targets": ["transcript", "visual"], "granularity": "fine_only"},
     "locator":    {"targets": ["transcript", "visual"], "granularity": "coarse_then_fine"},
     "comparison": {"targets": ["transcript", "visual"], "granularity": "coarse_then_fine"},
-    "generative": {"targets": ["transcript"],           "granularity": "coarse_then_fine"},
+    "generative": {"targets": ["transcript", "visual"],  "granularity": "coarse_then_fine"},
 }
 
 def analyze_query(query: str, history: list) -> dict:

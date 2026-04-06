@@ -9,14 +9,24 @@ def generate_response(routing: RoutingObject, clips: list[dict], query: str) -> 
             "clips": []
         }
 
-    context_parts = []
+    transcript_parts = []
+    visual_parts = []
     allowed_ranges = []
     for clip in clips[:3]:
+        t_label = f"[{clip['t_start']:.0f}s → {clip['t_end']:.0f}s]"
+        allowed_ranges.append(t_label)
         text = clip.get("context_text", "").strip()
+        vis_desc = clip.get("visual_description", "").strip()
+        ocr = clip.get("ocr_text", "").strip()
         if text:
-            context_parts.append(f"[{clip['t_start']:.0f}s → {clip['t_end']:.0f}s]: {text[:500]}")
-            allowed_ranges.append(f"[{clip['t_start']:.0f}s → {clip['t_end']:.0f}s]")
-    context = "\\n\\n".join(context_parts)
+            transcript_parts.append(f"{t_label}: {text[:500]}")
+        if vis_desc:
+            visual_parts.append(f"{t_label} [on screen]: {vis_desc[:300]}")
+        elif ocr:
+            visual_parts.append(f"{t_label} [on screen / OCR]: {ocr[:300]}")
+
+    context = "\n\n".join(transcript_parts)
+    visual_context = "\n\n".join(visual_parts)
 
     if routing.intent == "visual" and len(context.strip()) < 40:
         moments = ", ".join([f"[{c['t_start']:.0f}s -> {c['t_end']:.0f}s]" for c in clips[:3]])
@@ -40,23 +50,39 @@ def generate_response(routing: RoutingObject, clips: list[dict], query: str) -> 
             ]
         }
 
+    def _build_summary_context() -> str:
+        parts = []
+        if context.strip():
+            parts.append(f"TRANSCRIPT:\n{context}")
+        if visual_context.strip():
+            parts.append(f"VISUAL FRAMES (what appeared on screen):\n{visual_context}")
+        return "\n\n".join(parts) if parts else context
+
     if routing.generation_task == "quiz":
-        answer = call_llm(f"Generate 3 multiple choice quiz questions from this lecture content. Number them 1-3.\\n\\n{context}")
+        answer = call_llm(
+            f"Generate 3 multiple choice quiz questions based on both the spoken content and visual frames shown.\n"
+            f"Number them 1-3.\n\n{_build_summary_context()}"
+        )
     elif routing.generation_task == "summary_short":
-        answer = call_llm(f"Summarize this lecture content in exactly 1 concise bullet point.\\n\\n{context}")
+        answer = call_llm(
+            f"Using both the transcript and any on-screen visuals, summarize this video in exactly 1 concise bullet point.\n\n"
+            f"{_build_summary_context()}"
+        )
     elif routing.generation_task == "summary_deep":
         answer = call_llm(
-            f"Summarize this lecture content in 6 bullet points with:\n"
-            "- 3 core ideas\n"
-            "- 2 important details\n"
-            "- 1 practical takeaway\n\n"
-            f"{context}"
+            f"Using both what was spoken and what appeared on screen, summarize this video in 6 bullet points:\n"
+            "- 3 core ideas\n- 2 important details\n- 1 practical takeaway\n\n"
+            f"{_build_summary_context()}"
         )
     elif routing.generation_task == "summary":
-        answer = call_llm(f"Summarize this lecture content in exactly 3 bullet points.\\n\\n{context}")
+        answer = call_llm(
+            f"Using both the transcript and any on-screen visuals, summarize this video in exactly 3 bullet points.\n\n"
+            f"{_build_summary_context()}"
+        )
     else:
         answer = call_llm(
             f"""Answer the student's question using ONLY the lecture content provided below.
+If the provided content does NOT contain relevant information to answer the query, reply EXACTLY with "NO_RELEVANT_CONTENT_FOUND".
 Be concise (2-4 sentences). If you reference something visual, mention the timestamp.
 Only cite timestamps from these ranges: {', '.join(allowed_ranges) if allowed_ranges else 'none'}.
 Do not invent new timestamps.
@@ -67,6 +93,20 @@ Lecture content:
 Student question: {query}
 Answer:"""
         )
+
+    if "NO_RELEVANT_CONTENT_FOUND" in answer:
+        return {
+            "answer": "I couldn't find relevant content for that query in this lecture.",
+            "clips": []
+        }
+
+    negative_phrases = [
+        "no mention of", "not mentioned", "does not mention", 
+        "does not discuss", "not discussed", "no relevant information", 
+        "could not find"
+    ]
+    if any(phrase in answer.lower() for phrase in negative_phrases):
+        clips = []
 
     clips = _prioritize_cited_clip(answer, clips)
 
