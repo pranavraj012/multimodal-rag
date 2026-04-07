@@ -23,8 +23,10 @@ frontend/dist/
 data/chroma_db/
 data/frames/
 uploads/
+Test/
 
 # OS / editor
 .DS_Store
 Thumbs.db
 .vscode/
+*.mp4
