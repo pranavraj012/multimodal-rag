@@ -15,6 +15,7 @@ def retrieve(
     session_history: list,
     top_k: int = 5,
     lecture_id: str | None = None,
+    use_rerank: bool = True,
 ) -> list[dict]:
     embedder = get_embedder()
     query_vector = embedder.encode(routing.rewritten_query).tolist()
@@ -114,16 +115,19 @@ def retrieve(
         _attach_transcript_context_to_clips(clips, transcript_col, course_id, lecture_id=lecture_id, window_sec=context_window)
 
     for clip in clips:
-        popularity = min(clip["query_hit_count"] / 50.0, 1.0)
-        recency_bonus = 0.1 if clip["t_start"] < 300 else 0.0
-        temporal_bonus = _temporal_bonus(clip, routing.temporal_anchor)
-        base_score = (
-            0.5 * clip["clip_score"] +
-            0.3 * popularity +
-            0.15 * recency_bonus +
-            0.05 * temporal_bonus
-        )
-        clip["final_score"] = base_score + _heuristic_rerank_bonus(clip, routing)
+        if use_rerank:
+            popularity = min(clip["query_hit_count"] / 50.0, 1.0)
+            recency_bonus = 0.1 if clip["t_start"] < 300 else 0.0
+            temporal_bonus = _temporal_bonus(clip, routing.temporal_anchor)
+            base_score = (
+                0.5 * clip["clip_score"] +
+                0.3 * popularity +
+                0.15 * recency_bonus +
+                0.05 * temporal_bonus
+            )
+            clip["final_score"] = base_score + _heuristic_rerank_bonus(clip, routing)
+        else:
+            clip["final_score"] = clip.get("clip_score", 0.0)
 
     clips.sort(key=lambda x: x.get("final_score", 0), reverse=True)
 
@@ -139,7 +143,7 @@ def retrieve(
 
     # Apply LLM Text-based Reranking to the top subset
     clips = clips[:top_k * 2]
-    if clips and routing.intent not in ("generative",):
+    if use_rerank and clips and routing.intent not in ("generative",):
         clips = _llm_rerank_clips(clips, routing.rewritten_query)
 
     _bump_query_hit_counts(clips)

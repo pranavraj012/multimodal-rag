@@ -279,13 +279,20 @@ class QueryRequest(BaseModel):
     course_id: str | None = None
     lecture_id: str
     student_id: str
+    use_rerank: bool = True
 
 @app.post("/query")
 async def query(req: QueryRequest):
     history = SESSIONS.get(req.student_id, [])
 
     routing = build_routing_object(req.query, history)
-    clips = retrieve(routing, req.course_id, history, lecture_id=req.lecture_id)
+    clips = retrieve(
+        routing,
+        req.course_id,
+        history,
+        lecture_id=req.lecture_id,
+        use_rerank=req.use_rerank,
+    )
     response = generate_response(routing, clips, req.query)
 
     if clips:
@@ -309,6 +316,11 @@ async def query(req: QueryRequest):
         **response,
         "intent": routing.intent,
         "rewritten_query": routing.rewritten_query,
+        "retrieval_context": [
+            (c.get("context_text") or "").strip()
+            for c in clips
+            if (c.get("context_text") or "").strip()
+        ],
     }
 
 class RewatchEvent(BaseModel):

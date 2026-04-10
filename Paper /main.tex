@@ -1,0 +1,480 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{EduRAG: Multimodal Retrieval-Augmented Generation for Educational Video Understanding}
+
+\author{\IEEEauthorblockN{1\textsuperscript{st} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+\and
+\IEEEauthorblockN{3\textsuperscript{rd} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+\and
+\IEEEauthorblockN{4\textsuperscript{th} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+\and
+\IEEEauthorblockN{5\textsuperscript{th} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+\and
+\IEEEauthorblockN{6\textsuperscript{th} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+}
+
+\maketitle
+
+\begin{abstract}
+Long educational videos are often difficult to navigate when learners need a specific explanation or visual example quickly. Finding the right moment in a lecture usually involves manual searching, and educators often have limited visibility into which parts of a video students struggle with the most. To address this problem, we propose EduRAG, a multimodal Retrieval-Augmented Generation framework for educational platforms that lets users ask questions in natural language and receive the most relevant video segments along with a generated response. The system first processes each video by transcribing speech with Faster-Whisper and extracting important visual frames using Structural Similarity Index (SSIM) based sampling. These frames are then analyzed with OCR and when needed, a VLM to maintain a balance between accuracy and computational efficiency. The extracted audio and visual information is divided into segments and stored in a hybrid retrieval system that combines vector-based semantic search with a knowledge graph for conceptual linking. To improve retrieval, an LLM-based routing module classifies queries as conceptual, temporal, or visual while preserving context across follow-up questions. In addition, user interaction signals such as repeated views and query behavior are used to identify difficult topics and provide educators with useful feedback for improving content delivery. This approach makes educational video learning more interactive, efficient, and targeted. Code is available at: https://github.com/pranavraj012/multimodal-rag
+\end{abstract}
+
+\begin{IEEEkeywords}
+multimodal retrieval-augmented generation, educational video understanding, lecture retrieval, timestamped question answering, multimodal indexing
+\end{IEEEkeywords}
+
+\section{Introduction}
+Finding one precise explanation inside a long lecture video or course is still a very real problem for students. Most learners remember fragments like a formula, a diagram, or a short coding example, but they rarely remember the exact timestamp where it appeared. Because of this, revision becomes slow repetitive and mentally tiring. This project focuses on that gap by turning passive lecture recordings into something searchable and interactive. The key idea is that transcript search alone does not capture how modern lectures work, since important teaching moments are often visual temporal and context dependent. To handle this, the system brings together speech signals frame level cues semantic retrieval and user interaction traces into a single pipeline.
+
+The implementation starts with ingestion. The backend accepts video uploads, stores lecture metadata, extracts audio at 16 kHz mono, and generates keyframes using SSIM based scene changes so that only meaningful transitions are preserved. Speech is then converted into timestamped text using Faster Whisper. Each frame is classified as either talking head or visual content, OCR is used to extract on screen text, and deeper visual analysis is applied only to selected frames under an adaptive budget. This selective approach keeps computation manageable while still capturing useful visual details from diagrams and slides. After this stage the data is organized into hierarchical chunks, with smaller chunks for precise retrieval and larger ones for broader context, along with visual intervals aligned to the video timeline.
+
+During indexing, transcript and visual text embeddings are generated using MiniLM and stored in ChromaDB collections. At the same time concept level relationships are constructed in a NetworkX graph using noun phrase co occurrence and their timestamps. When a query is issued, an LLM rewrites follow up questions predicts the intent and sets routing controls such as modality focus granularity temporal anchors and filtering conditions. Retrieval then performs lecture scoped semantic search, applies intent aware filtering merges nearby results into clips and attaches transcript context to visual segments. The final ranking considers relevance popularity recency and temporal alignment. For conceptual queries the graph is also used to surface related ideas.
+
+In the response stage, answers are generated strictly from retrieved evidence and linked with timestamps so users can directly jump to the relevant part of the video. The system also supports summary and quiz modes which are useful during revision. On the frontend users can upload lectures revisit stored content clear sessions and navigate suggested clips through auto seek cards. The system is compatible with both Gemini and Ollama giving flexibility between cloud based performance and local execution. Analytics components track query patterns and rewatch behavior helping identify difficult topics and giving instructors signals to improve their material. Overall the system is designed to be practical efficient and genuinely helpful for everyday learning.
+
+
+
+\section{Literature Review: Multimodal Retrieval-Augmented Generation for Educational Applications}
+
+Multimodal Retrieval-Augmented Generation has moved from text-centered retrieval to architectures that jointly process text, images, audio, and video, with explicit design choices for parsing, indexing, retrieval, and grounded generation~\cite{mei2024survey}. A PRISMA-based review of 128 studies shows that progress depends on coordinated improvements across methods like chunking, indexing, retrieval policies, and evaluation protocols rather than isolated model upgrades~\cite{brown2024systematic}. For educational applications, this pipeline perspective is particularly important because lecture understanding depends on temporal continuity follow-ups, visual grounding and low-latency interaction under practical compute constraints~\cite{zheng2024retrieval,mao2024multi,xu2024evrag}.
+
+\subsection{Data Ingestion and Preprocessing}
+
+Ingestion strategies diverge between conversion-first pipelines and modality-preserving pipelines, and this choice strongly affects downstream retrieval behavior~\cite{mei2024survey}. Multi-RAG exemplifies conversion-first design by grounding video and audio into unified markdown chunks with adaptive frame sampling and temporal metadata, which improves efficiency in long educational videos while preserving sufficient context for QA~\cite{mao2024multi}. E-VRAG instead performs hierarchical query decomposition and CLIP-based frame pre-filtering before lightweight VLM scoring, reducing computation by about 70 percent while retaining competitive accuracy on long-video benchmarks~\cite{xu2024evrag}. MMORE targets scale by using a dispatcher plus modality-specific processors and a standardized MultimodalSample representation, reporting distributed throughput gains and improved layout extraction quality for heterogeneous sources~\cite{sallinen2024mmore}. A wireless-domain multimodal RAG similarly demonstrates that strong preprocessing can come from transforming RGB, LiDAR, and GPS into textual descriptors before retrieval, yielding measurable gains in faithfulness and completeness~\cite{mohsin2024retrieval}.
+
+The trade-off is clear: conversion-first systems simplify storage and retrieval interfaces but risk information loss from modality compression, while richer modality-preserving pipelines retain detail but increase operational complexity and cost~\cite{mei2024survey,zheng2024retrieval}. For educational systems, these results motivate adaptive sampling, explicit temporal metadata, and selective expensive visual processing rather than uniform frame-level analysis~\cite{mao2024multi,xu2024evrag,sallinen2024mmore}.
+
+\subsection{Multimodal Representation and Indexing}
+
+Index construction spans flat vector stores, graph-augmented stores, and multi-resolution indices, each solving different failure modes~\cite{edge2024local,rashmi2024multimodal,liu2024towards}. GraphRAG builds an entity graph from chunked text and applies Leiden community detection to produce hierarchical summaries that support corpus-level reasoning beyond local semantic neighbors~\cite{edge2024local}. MAHA combines dense vector indexing with a modality-aware knowledge graph that encodes cross-modal structure through typed relations, improving modality coverage and generation quality relative to single-retriever baselines~\cite{rashmi2024multimodal}. M3KG-RAG extends this direction with a multi-agent construction pipeline that extracts context-enriched triplets and grounds entities, then uses selective pruning to reduce noisy evidence at retrieval time~\cite{park2024m3kg}. SPI addresses a separate systems bottleneck by introducing semantic pyramid indexing and query-adaptive search depth, improving speed and memory efficiency but adding nontrivial multi-resolution storage overhead~\cite{liu2024towards}. MMORE contributes a practical representation layer by normalizing diverse files into a unified interleaved format while supporting hybrid sparse and dense indexing~\cite{sallinen2024mmore}.
+
+For educational multimodal RAG, these works jointly suggest a layered index design: dense vectors for fast lookup, graph links for cross-topic reasoning, and efficient data normalization for large lecture archives~\cite{edge2024local,sallinen2024mmore,rashmi2024multimodal}.
+
+\subsection{Retrieval Strategies: Vector, Hybrid, Graph, and Agentic}
+
+Vector retrieval remains strong for localized evidence but weak for global sensemaking, as shown by GraphRAG's head-to-head gains on comprehensiveness and diversity in large transcript corpora~\cite{edge2024local}. Hybrid retrieval improves robustness when evidence spans modalities or document structure; MAHA demonstrates that combining vector similarity with graph traversal yields stronger retrieval and generation outcomes than either mechanism alone~\cite{rashmi2024multimodal}. In long-video settings, Vgent uses graph-structured clip relationships to preserve temporal and semantic continuity, then filters hard negatives through structured reasoning, improving benchmark performance over prior video RAG baselines~\cite{shen2024vgent}. E-VRAG adds resource-aware frame retrieval and grouping that avoids redundant context expansion while maintaining answer quality~\cite{xu2024evrag}.
+
+Agentic approaches generalize these ideas through dynamic orchestration~\cite{singh2024agentic}. HM-RAG operationalizes this with a decomposition agent, parallel modality-specific retrieval agents, and a decision agent that reconciles candidate answers via consistency voting and expert refinement, delivering zero-shot gains on ScienceQA and CrisisMMD~\cite{liu2024hmrag}. The broader Agentic RAG survey classifies router, multi-agent, hierarchical, corrective, and adaptive patterns, but also highlights coordination overhead and latency as key deployment risks~\cite{singh2024agentic}. mRAG adds a practical retrieval recipe, showing that listwise reranking and strong retrievers can outperform simpler settings, and that generation quality may peak with a small number of highly relevant documents~\cite{hu2024mrag}.
+
+These comparisons motivate an educational retriever that is lecture-scoped, multimodal, and intent-aware, with optional graph and agentic modules only when their reasoning benefits justify latency costs~\cite{singh2024agentic,liu2024hmrag,hu2024mrag,shen2024vgent,rashmi2024multimodal}.
+
+\subsection{Cross-Modal Alignment and Fusion}
+
+Cross-modal alignment is a central bottleneck in multimodal RAG and a recurring source of hallucination when retrieved context and visual evidence are poorly synchronized~\cite{xia2024mmed,zheng2024retrieval,mei2024survey}. MMed-RAG directly targets this problem through domain-aware retrieval selection, adaptive context filtering, and RAG-based preference fine-tuning, reporting strong factuality gains across radiology, pathology, and ophthalmology datasets~\cite{xia2024mmed}. AlzheimerRAG uses cross-modal attention fusion over text and image embeddings, improving clinical QA quality while still acknowledging interpretability and bias concerns~\cite{lahiri2024alzheimer}. M3KG-RAG introduces modality-wise retrieval plus grounding verification and selective pruning, explicitly reducing off-topic multimodal evidence before generation~\cite{park2024m3kg}. MAHA's modality-aware graph relations also improve fusion by preserving links between text, tables, equations, and images during retrieval~\cite{rashmi2024multimodal}.
+
+Comparatively, alignment methods differ in where fusion occurs: encoder-level attention fusion emphasizes representation coupling, while retrieval-time grounding and pruning emphasize evidence reliability before decoding~\cite{lahiri2024alzheimer,park2024m3kg}. Survey evidence further indicates that modality imbalance persists, with many systems over-relying on textual context even when visual evidence is essential~\cite{zheng2024retrieval,mei2024survey}. For educational video assistants, this supports using lightweight alignment controls such as content-type routing, adaptive context selection, and timestamp-aware fusion to keep visual evidence active in final answers~\cite{xia2024mmed,zheng2024retrieval,mei2024survey,park2024m3kg}.
+
+\subsection{Reasoning and Generation}
+
+Reasoning modules increasingly shift from single-pass prompting to structured decomposition and iterative verification~\cite{singh2024agentic,hu2024mrag,shen2024vgent}. GraphRAG's map-reduce answer synthesis over community summaries is effective for global corpus questions that exceed local retrieval assumptions~\cite{edge2024local}. HM-RAG's hierarchical decision stage and expert-guided refinement improve response consistency when multi-source retrieval outputs conflict~\cite{liu2024hmrag}. Vgent performs divide-and-conquer reasoning through binary and numerical subqueries that validate clip relevance before final multimodal generation, helping smaller open models compete with larger baselines~\cite{shen2024vgent}. E-VRAG's multi-view QA similarly aggregates different reasoning perspectives to improve long-video understanding under compute limits~\cite{xu2024evrag}. mRAG further shows that self-reflection loops can raise answer quality without task-specific fine-tuning~\cite{hu2024mrag}.
+
+Generation quality also depends on prompt strategy and evidence scope. Multi-RAG reports a practical trade-off between creative prompting and factual grounding, while mRAG finds that fewer but better-ranked documents can outperform larger context bundles~\cite{mao2024multi,hu2024mrag}. These results motivate educational systems that constrain generation to verified retrieved evidence, favor structured reasoning for complex queries, and avoid uncontrolled context expansion that amplifies noise~\cite{hu2024mrag,mao2024multi,shen2024vgent}.
+
+\subsection{Evaluation and Benchmarks}
+
+Evaluation protocols in multimodal RAG are diverse and still evolving, which complicates direct cross-paper comparison~\cite{brown2024systematic,mei2024survey}. GraphRAG uses LLM-as-judge with comprehensiveness, diversity, empowerment, and directness, and supplements this with claim-based validation~\cite{edge2024local}. Medical systems report task-specific factuality improvements across VQA and report generation benchmarks, with AlzheimerRAG adding clinical scenario studies and hallucination tracking~\cite{xia2024mmed,lahiri2024alzheimer}. Long-video systems evaluate on MMBench-Video, Video-MME, LongVideoBench, MLVU, and NextQA, often balancing accuracy against cost metrics such as TFLOPs or sampling rate~\cite{mao2024multi,xu2024evrag,shen2024vgent}. Multilingual and cultural robustness is highlighted by M4-RAG, which shows strong language-dependent performance gaps and inverse scaling behaviors under retrieval~\cite{anugraha2024m4}.
+
+At the survey level, MRAG and systematic RAG reviews emphasize three complementary evaluation pillars: automated metrics, human judgment, and model-as-judge protocols, while also noting unresolved issues in modality coverage, efficiency, and security~\cite{mei2024survey,brown2024systematic}. For educational multimodal RAG, this evidence supports a benchmark stack that jointly measures retrieval quality (Recall@K, MRR), answer quality (faithfulness, completeness), grounding reliability (hallucination rate), and systems performance (latency and compute cost)~\cite{mohsin2024retrieval,mei2024survey,mao2024multi,xu2024evrag,brown2024systematic,rashmi2024multimodal}.
+
+\subsection{Implications for Educational Multimodal RAG Design}
+
+Across the pipeline, prior work supports a balanced architecture for educational applications: adaptive ingestion to control cost, multimodal plus graph-aware indexing for relational coverage, intent-conditioned hybrid retrieval for robustness, explicit alignment controls for visual grounding, and structured reasoning for complex temporal or comparative questions~\cite{edge2024local,xia2024mmed,liu2024hmrag,mao2024multi,xu2024evrag,shen2024vgent,rashmi2024multimodal,park2024m3kg}. At the same time, the literature repeatedly warns that each added capability can introduce latency, orchestration complexity, or domain transfer costs, so modular deployment and ablation-driven validation remain essential design principles~\cite{xia2024mmed,singh2024agentic,xu2024evrag,brown2024systematic,liu2024towards}.
+
+\section{Methodology}
+
+\subsection{Overview}
+
+In this work, we propose a multimodal Retrieval-Augmented Generation framework for efficient understanding and querying of long lecture videos. Traditional lecture consumption requires sequential navigation, making it difficult for users to locate specific explanations, visual content, or conceptual segments. Existing approaches that rely solely on transcript-based retrieval often fail to capture critical information embedded in visual elements such as slides, diagrams, and code.
+
+To address these limitations, the proposed system transforms a lecture video into a structured multimodal knowledge base by jointly modeling textual and visual information. Given a lecture video $V$ and a user query $Q$, the objective is to retrieve a set of relevant temporal segments $V_{\text{clip}}$ and generate a grounded response $A$:
+\begin{equation}
+A = f(V_{\text{clip}}, Q),
+\end{equation}
+where $V_{\text{clip}} \subset V$ denotes a set of timestamped segments selected from the lecture and $f(\cdot)$ represents the response generation function constrained by retrieved evidence. The retrieval process operates over a collection of multimodal chunks $\mathcal{C}$ and selects the top-$k$ relevant candidates:
+\begin{equation}
+V_{\text{clip}} = \operatorname{TopK}\left(\mathcal{R}(Q, \mathcal{C})\right),
+\end{equation}
+where $\mathcal{R}(\cdot)$ denotes the retrieval function that computes similarity between the query and indexed representations.
+
+The overall system follows a staged pipeline consisting of video ingestion and preprocessing, multimodal feature extraction, chunking and indexing, and query-guided retrieval with grounded response generation. Unlike conventional RAG systems, the proposed framework maintains separate modality-specific indices for transcript and visual content and performs query-guided multimodal fusion at retrieval time. This design enables more precise temporal grounding and improves retrieval of visually intensive content.
+
+\subsection{Multimodal Ingestion and Representation}
+
+\subsubsection{Video Preprocessing}
+
+Given an input lecture video $V$, the system decomposes it into audio and visual streams for downstream multimodal processing. The audio track is extracted and converted into a standardized waveform representation at 16 kHz mono, enabling robust transcription. Concurrently, the video stream is processed to extract representative keyframes that capture semantically distinct visual content.
+
+Keyframe extraction is performed using the Structural Similarity Index, which measures perceptual similarity between consecutive frames. For two frames $I_t$ and $I_{t-1}$, SSIM is defined as:
+\begin{equation}
+\text{SSIM}(I_t, I_{t-1}) =
+\frac{(2\mu_t \mu_{t-1} + C_1)(2\sigma_{t,t-1} + C_2)}
+{(\mu_t^2 + \mu_{t-1}^2 + C_1)(\sigma_t^2 + \sigma_{t-1}^2 + C_2)},
+\end{equation}
+where $\mu$ and $\sigma$ denote mean and variance statistics and $C_1$ and $C_2$ are stabilization constants. A frame $I_t$ is selected as a keyframe when:
+\begin{equation}
+\text{SSIM}(I_t, I_{t-1}) < \tau,
+\end{equation}
+where $\tau = 0.85$ is an empirically chosen threshold in the current implementation. This criterion ensures that only frames corresponding to meaningful visual transitions, such as slide changes or diagram updates, are retained while redundant frames are discarded. As a result, the video is transformed into a sparse sequence of timestamped keyframes:
+\begin{equation}
+K = \{(I_i, t_i)\},
+\end{equation}
+which serves as the visual backbone for subsequent multimodal analysis.
+
+\subsubsection{Multimodal Feature Extraction}
+
+The extracted audio stream is transcribed into a sequence of timestamped textual segments:
+\begin{equation}
+T = \{(\hat{t}_i, s_i, e_i)\},
+\end{equation}
+where $\hat{t}_i$ denotes the transcribed text and $s_i, e_i$ represent the start and end timestamps of each segment.
+
+For the visual modality, each keyframe undergoes a multi-stage analysis pipeline. First, frames are classified into low-information categories, such as instructor-only talking-head frames, and high-information categories, such as slides, diagrams, or code. This filtering step avoids unnecessary processing of visually redundant frames. For high-information frames, textual content is extracted using OCR. To further enhance semantic understanding, selected frames are processed using a Vision Language Model to generate descriptive representations. However, since VLM inference is computationally expensive, the system employs an adaptive budgeting strategy to limit the number of frames processed:
+\begin{equation}
+N_{\text{vlm}} = \min(N_{\text{ratio}}, N_{\text{duration}}, N_{\max}),
+\label{eq:nvlm}
+\end{equation}
+where $N_{\text{ratio}}$ depends on the proportion of visual frames, $N_{\text{duration}}$ scales with lecture length, and $N_{\max}$ imposes a global upper bound.
+
+Additionally, VLM invocation is conditionally controlled based on OCR richness:
+\begin{equation}
+\text{UseVLM}(I_i)=
+\begin{cases}
+0, & \text{if } |\text{OCR}(I_i)| \geq \theta, \\
+1, & \text{otherwise},
+\end{cases}
+\end{equation}
+where $\theta$ is a predefined threshold on OCR text length. This ensures that frames containing sufficient textual information do not incur unnecessary VLM computation. Each keyframe is ultimately represented as a structured feature tuple:
+\begin{equation}
+F_i = \left(\text{OCR}_i, \text{Desc}_i, \text{Type}_i, \text{Comp}_i\right),
+\end{equation}
+where $\text{OCR}_i$ denotes extracted text, $\text{Desc}_i$ represents the VLM-generated description, $\text{Type}_i$ indicates semantic content type, and $\text{Comp}_i$ is a heuristic complexity score. In the implemented system, this complexity score is estimated from extracted symbols and content type:
+\begin{equation}
+\text{Comp}_i = \min\left(0.3\,\mathbf{1}_{\text{diagram}} + 0.2\,\mathbf{1}_{\text{code}} + 0.08\,n_{\text{math}} + 0.03\,n_{=}, 1.0\right).
+\end{equation}
+This multimodal representation captures complementary information from both textual and visual sources while maintaining computational efficiency through selective processing.
+
+\subsection{Multimodal Chunking and Indexing}
+
+\subsubsection{Transcript and Visual Chunking}
+
+Following feature extraction, the system converts continuous multimodal streams into discrete retrieval-ready units. This process is performed independently for textual and visual modalities while preserving temporal alignment. The transcript stream $T$ is segmented into fine-grained chunks by grouping a fixed number of sentences. Formally, the set of transcript chunks is defined as:
+\begin{equation}
+C_{\text{text}} = \left\{c_i \mid c_i = (\tilde{t}_i, s_i, e_i), \; |c_i| = k \text{ sentences}\right\},
+\end{equation}
+where $\tilde{t}_i$ represents the aggregated text, $s_i$ and $e_i$ denote the start and end timestamps, and $k$ is the chunk size, fixed to four sentences in the current pipeline. In addition to fine-grained chunks, a coarse-grained representation $c_{\text{global}}$ is constructed by aggregating the entire lecture transcript, enabling fallback retrieval for broad or generative queries.
+
+For the visual modality, each keyframe defines a temporal segment extending until the next keyframe. The resulting visual chunks are defined as:
+\begin{equation}
+C_{\text{vis}} = \left\{c_i^{\text{vis}} = [t_i, t_{i+1})\right\},
+\end{equation}
+where $t_i$ corresponds to the timestamp of keyframe $I_i$. Each visual chunk inherits the multimodal feature representation $F_i$ extracted in the previous stage. This dual-granularity and dual-modality design enables both precise temporal localization and robust semantic coverage, particularly for queries requiring either detailed explanations or broader contextual understanding.
+
+\subsubsection{Vector Indexing}
+
+To enable efficient similarity-based retrieval, both transcript and visual chunks are embedded into a shared semantic vector space. Let $E(\cdot)$ denote the embedding function. Each chunk is mapped as:
+\begin{equation}
+z_i = E(c_i), \quad z_i \in \mathbb{R}^d,
+\end{equation}
+where $d$ is the embedding dimensionality. For transcript chunks, the embedding is computed directly from textual content. For visual chunks, the embedding is derived from a concatenation of OCR text and visual descriptions, allowing visual semantics to be represented in the same space as text.
+
+The resulting embeddings are stored in two separate vector collections, $\mathcal{C}_{\text{text}}$ for transcript embeddings and $\mathcal{C}_{\text{vis}}$ for visual embeddings. This separation enables modality-specific retrieval while maintaining compatibility through a shared embedding space. Using a unified representation ensures that queries can be matched against both modalities using the same similarity function.
+
+\subsubsection{Concept Graph Construction}
+
+In addition to vector indexing, the system constructs a lightweight concept graph to capture higher-level semantic relationships within lecture content. From each transcript chunk, key concepts are extracted using syntactic parsing. Let $\mathcal{K} = \{k_1, k_2, \dots\}$ denote the set of extracted concepts. A graph $G = (V, E)$ is constructed where $V = \mathcal{K}$ represents concept nodes and $E$ represents edges between concepts that co-occur within temporal proximity. Edge weights are defined based on co-occurrence frequency:
+\begin{equation}
+w_{ij} = \sum_t \mathbf{1}(k_i, k_j \in c_t),
+\end{equation}
+where $\mathbf{1}(\cdot)$ is an indicator function over chunk $c_t$. Each node additionally stores timestamps corresponding to its occurrences within the lecture, enabling temporal grounding of concepts.
+
+This graph structure serves as an auxiliary retrieval mechanism that complements vector search by enabling concept-based navigation, related topic suggestions, and semantic enrichment during query-time retrieval. By combining vector indexing with graph-based representations, the system supports both similarity-driven and structure-aware retrieval strategies~\cite{edge2024local,rashmi2024multimodal,park2024m3kg}.
+
+\subsection{Query-Guided Retrieval and Fusion}
+
+\subsubsection{Query Analysis and Routing}
+
+Given a user query $Q$, the system first performs query understanding to construct a structured routing object. This process rewrites the query to resolve ambiguities and classifies it into a predefined intent set:
+\begin{equation}
+\mathcal{I} = \{\text{concept}, \text{visual}, \text{temporal}, \text{locator}, \text{comparison}, \text{generative}\}.
+\end{equation}
+The routing function is defined as:
+\begin{equation}
+R(Q) = \left(\tilde{Q}, I, \mathcal{T}, \mathcal{G}, \mathcal{F}\right),
+\end{equation}
+where $\tilde{Q}$ is the rewritten query, $I \in \mathcal{I}$ is query intent, $\mathcal{T}$ denotes target modalities, $\mathcal{G}$ denotes retrieval granularity, and $\mathcal{F}$ captures optional filters such as content-type constraints. The intent determines the retrieval strategy. For example, visual queries restrict search to visual chunks, while generative queries prioritize coarse transcript representations. To support conversational queries, a temporal anchoring mechanism is used. If the query contains implicit references such as ``that'' or ``before'', a temporal anchor $t_{\text{anchor}}$ is inferred from prior interactions.
+
+\subsubsection{Retrieval and Scoring}
+
+The rewritten query $\tilde{Q}$ is embedded into the same vector space as indexed chunks:
+\begin{equation}
+z_q = E(\tilde{Q}).
+\end{equation}
+Similarity between the query and each chunk $c_i$ is computed using cosine similarity:
+\begin{equation}
+\text{score}(q, c_i) = \frac{z_q \cdot z_i}{\|z_q\| \|z_i\|}.
+\end{equation}
+In practice, the implementation converts vector distance returned by the underlying store into similarity as:
+\begin{equation}
+\text{score}(q, c_i) = 1 - d(q, c_i).
+\end{equation}
+Retrieval is explicitly scoped to the selected lecture:
+\begin{equation}
+c_i \in \mathcal{C} \;\text{such that}\; c_i.\text{lecture\_id} = L,
+\end{equation}
+ensuring that no cross-lecture information is introduced.
+
+Intent-specific constraints are applied during retrieval, including modality filtering based on $\mathcal{T}$, content-type filtering for visual queries, and optional coarse-to-fine fallback for broad queries. Additionally, minimum score thresholds are defined per intent:
+\begin{equation}
+\text{score}(q, c_i) \geq \tau_I,
+\end{equation}
+where $\tau_I$ varies depending on query type. To ensure result diversity, previously retrieved clips in the same session are filtered out. If no candidates satisfy threshold constraints, the system falls back to the highest-scoring available clips rather than returning an empty result.
+
+\subsubsection{Multimodal Fusion}
+
+Retrieved chunks from different modalities are combined into unified clip representations based on temporal proximity. Given a set of candidate chunks, fusion is defined as:
+\begin{equation}
+V_{\text{clip}} = \bigcup_i c_i \quad \text{where} \quad |t_i - t_j| < \delta,
+\end{equation}
+where $\delta = 30$ seconds defines the temporal fusion window used in the implementation. Each resulting clip aggregates temporal bounds $[t_{\text{start}}, t_{\text{end}}]$, modality indicators, and combined textual context. A confidence score is assigned based on modality agreement:
+\begin{equation}
+\text{conf}(V_{\text{clip}})=
+\begin{cases}
+\text{HIGH}, & \text{if multimodal evidence is present}, \\
+\text{LOW}, & \text{otherwise}.
+\end{cases}
+\end{equation}
+To improve robustness, cross-modal enrichment is applied. Visual clips are augmented with nearby transcript context, and concept-based relations are attached using the graph structure. When both fine-grained and coarse-grained chunks are present, coarse-only clips are discarded to preserve temporal precision.
+
+\subsubsection{Ranking}
+
+Each candidate clip is assigned a final relevance score that combines multiple factors:
+\begin{equation}
+S(V_{\text{clip}}) = \alpha S_{\text{sim}} + \beta S_{\text{pop}} + \gamma S_{\text{rec}} + \delta_t S_{\text{temp}},
+\end{equation}
+where $S_{\text{sim}}$ is semantic similarity, $S_{\text{pop}}$ is popularity based on historical query interactions, $S_{\text{rec}}$ is recency bias, and $S_{\text{temp}}$ is temporal relevance with respect to the anchor, subject to:
+\begin{equation}
+\alpha + \beta + \gamma + \delta_t = 1.
+\end{equation}
+In the current implementation, the ranking function is instantiated as:
+\begin{equation}
+S(V_{\text{clip}}) = 0.50\,S_{\text{sim}} + 0.30\,S_{\text{pop}} + 0.15\,S_{\text{rec}} + 0.05\,S_{\text{temp}}.
+\end{equation}
+Temporal adjustment is applied when a query includes or implies a temporal reference:
+\begin{equation}
+|t - t_{\text{anchor}}| \leq \Delta,
+\end{equation}
+where $\Delta = 120$ seconds defines the temporal window used to boost nearby evidence. The top-$k$ ranked clips are selected for downstream response generation.
+
+\subsection{Response Generation}
+
+The final response is generated using the top-$k$ ranked clips $\{V_{\text{clip}}^{(1)}, \dots, V_{\text{clip}}^{(k)}\}$ retrieved from the previous stage. These clips are used to construct a constrained context $\mathcal{X}$ consisting of aggregated transcript and visual information:
+\begin{equation}
+\mathcal{X} = \bigcup_{i=1}^{k} \text{Context}\left(V_{\text{clip}}^{(i)}\right).
+\end{equation}
+A language model is then conditioned on $\mathcal{X}$ and the query $Q$ to generate the final answer:
+\begin{equation}
+A = f(\mathcal{X}, Q).
+\end{equation}
+To ensure grounded generation, the system enforces the constraint:
+\begin{equation}
+A \subseteq \mathcal{X},
+\end{equation}
+meaning that the generated response must be derived only from retrieved evidence, preventing hallucination of unsupported content.
+
+Depending on query intent, the generation process adapts dynamically. For direct question answering, the system produces concise evidence-grounded responses. For summarization, it generates short, medium, or detailed summaries based on query cues. For quiz generation, it constructs question-answer pairs from retrieved content. For queries with weak textual grounding, such as purely visual questions, the system avoids forcing semantic interpretation and instead returns relevant timestamped segments as visual references. The final output therefore consists of a natural language response $A$, a ranked list of timestamped clips $V_{\text{clip}}$, and optional related concepts derived from the knowledge graph.
+
+\subsection{System Characteristics}
+
+The proposed system exhibits several key characteristics that distinguish it from conventional retrieval-augmented frameworks. First, it provides multimodal grounding by jointly leveraging transcript and visual information, enabling retrieval and reasoning over both spoken and visual content. This is particularly important for lecture videos where critical information is often conveyed through slides, diagrams, or code rather than speech alone. Second, it performs query-guided retrieval, where routing is dynamically controlled by query intent, allowing the system to adapt its behavior based on whether a request is conceptual, visual, temporal, or generative.
+
+Third, the system supports adaptive computation. Vision-language model usage is constrained by the budgeting rule in \eqref{eq:nvlm}, ensuring scalability to long lecture videos without excessive inference cost. Fourth, the system enforces lecture-level isolation:
+\begin{equation}
+c_i \in \mathcal{C} \;\text{such that}\; c_i.\text{lecture\_id} = L,
+\end{equation}
+which prevents cross-document contamination and ensures that generated responses remain contextually consistent. Fifth, temporal awareness and continuity are preserved through anchoring and proximity-based fusion:
+\begin{equation}
+|t_i - t_j| < \delta, \quad |t - t_{\text{anchor}}| \leq \Delta.
+\end{equation}
+These constraints enable support for follow-up queries and time-referenced questions.
+
+Finally, the system employs a hybrid retrieval architecture by combining vector-based similarity search with graph-based semantic enrichment, allowing it to capture both local relevance and global conceptual relationships. Grounded response generation is preserved through the constraint $A \subseteq \mathcal{X}$, ensuring that outputs remain verifiable and aligned with lecture content. Taken together, these design choices make EduRAG a practical multimodal Retrieval-Augmented Generation framework for education that balances computational efficiency with retrieval accuracy through adaptive VLM usage, dual-granularity chunking, and modality-specific indexing.
+
+\section{Results and Discussion}
+
+\subsection{Experimental Setup}
+We evaluated EduRAG on three ingested educational videos spanning data engineering, mechanics, and biology, with a total of 15 question-answer test cases. The evaluation protocol used three LLM-as-a-judge metrics: Answer Relevancy, Faithfulness, and Contextual Precision. Each metric score lies in $[0,1]$, where higher is better. To align with project constraints and avoid external API quota issues, we used a local Ollama judge (\texttt{llama3.1:8b}) through DeepEval~\cite{deepeval,ollama}.
+
+We compared two retrieval configurations:
+\begin{itemize}
+    \item \texttt{with\_rerank}: intent-aware ranking with heuristic and LLM-based reranking.
+    \item \texttt{without\_rerank}: baseline retrieval without reranking.
+\end{itemize}
+
+\subsection{Quantitative Results}
+Table~\ref{tab:eval-agg} reports aggregate means across 15 questions. Figure~\ref{fig:comparison} visualizes the same comparison.
+
+\begin{table}[h]
+\centering
+\caption{Aggregate DeepEval scores for both configurations}
+\label{tab:eval-agg}
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Configuration} & \textbf{Answer Relevancy} & \textbf{Faithfulness} & \textbf{Contextual Precision} \\
+\hline
+\texttt{with\_rerank} & 0.601 & 0.472 & 0.700 \\
+\texttt{without\_rerank} & 0.621 & 0.622 & 0.876 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{../Test/eval_results/comparison_chart.png}
+\caption{Comparison of aggregate evaluation metrics between reranked and non-reranked retrieval.}
+\label{fig:comparison}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{../Test/eval_results/heatmap_with_rerank.png}
+\caption{Per-question metric heatmap for the \texttt{with\_rerank} configuration.}
+\label{fig:heatmap-rerank}
+\end{figure}
+
+\subsection{Discussion}
+The observed trend is that \texttt{without\_rerank} performed better on this benchmark slice, most notably in Faithfulness (+0.150 absolute) and Contextual Precision (+0.176 absolute). A plausible explanation is that the current reranking stage is occasionally over-selective for broad or weakly grounded questions, which can reduce useful evidence diversity before generation. In contrast, the non-reranked setup frequently retained a wider evidence set, which appears to have helped grounding in this experiment.
+
+At the same time, these results should be interpreted with care. First, this is a relatively small benchmark (15 questions) over three lectures, so variance can still be high. Second, local lightweight judge models can occasionally return malformed JSON under strict metric prompts; this occurred in a subset of Contextual Precision evaluations for the \texttt{without\_rerank} run. DeepEval handled this by recording per-question errors, but aggregate means for that metric were computed over valid outputs only.
+
+Qualitatively, the system still demonstrates the desired educational behavior: responses remain tied to retrieved lecture evidence, timestamps are surfaced for direct navigation, and cross-modal cues (spoken explanation plus slide/diagram context) support query answering beyond transcript-only search. Overall, the experiment validates the end-to-end EduRAG pipeline and, importantly, highlights where reranking policy needs calibration rather than removal.
+
+\section{Conclusion}
+This work presents EduRAG, a practical multimodal RAG framework for educational video understanding that integrates transcript signals, visual evidence, intent-aware retrieval, and grounded response generation. The implementation emphasizes deployability: adaptive visual processing budgets, lecture-scoped indexing, session-aware retrieval continuity, and timestamp-linked answers that are directly actionable for learners.
+
+Our empirical study confirms that the full pipeline is functional and useful for real lecture QA, while also revealing an actionable optimization target: reranking behavior currently underperforms a no-rerank baseline on the tested benchmark slice. This is a valuable result because it guides the next engineering iteration with clear evidence.
+
+Future work will focus on (i) stronger and more stable judge models for evaluation, (ii) reranker calibration by intent and evidence density, (iii) larger multi-course benchmarks with repeated runs, and (iv) deeper educator-facing analytics to convert retrieval traces into curriculum improvement signals. With these improvements, EduRAG can evolve from a strong prototype into a robust assistant for large-scale educational platforms.
+
+
+\begin{thebibliography}{99}
+
+\bibitem{edge2024local}
+Darren Edge, Ha Trinh, Newman Cheng, Joshua Bradley, Alex Chao, Apurva Mody, Steven Truitt, Dasha Metropolitansky, Robert Osazuwa Ness.
+\textit{From Local to Global: A GraphRAG Approach to Query-Focused Summarization}.
+
+\bibitem{xia2024mmed}
+Peng Xia, Kangyu Zhu, Haoran Li, Tianze Wang, Weijia Shi, Sheng Wang, Linjun Zhang, James Zou, Huaxiu Yao.
+\textit{MMED-RAG: Versatile Multimodal RAG System for Medical Vision Language Models}.
+
+\bibitem{lahiri2024alzheimer}
+Aritra Kumar Lahiri, Qinmin Vivian Hu.
+\textit{AlzheimerRAG: Multimodal Retrieval Augmented Generation for Clinical Use Cases}.
+
+\bibitem{singh2024agentic}
+Aditi Singh, Abul Ehtesham, Saket Kumar, Tala Talaei Khoei.
+\textit{Agentic Retrieval-Augmented Generation: A Survey on Agentic RAG}.
+
+\bibitem{mohsin2024retrieval}
+Muhammad Ahmed Mohsin, Ahsan Bilal, Sagnik Bhattacharya, John M. Cioffi.
+\textit{Retrieval Augmented Generation with Multi-Modal LLM Framework for Wireless Environments}.
+
+\bibitem{zheng2024retrieval}
+Xu Zheng, Ziqiao Weng, Yuanhuiyi Lyu, Lutao Jiang, Haiwei Xue, Bin Ren, Danda Paudel, Nicu Sebe, Luc Van Gool, Xuming Hu.
+\textit{Retrieval Augmented Generation and Understanding in Vision: A Survey and New Outlook}.
+
+\bibitem{mei2024survey}
+Lang Mei, Siyu Mo, Zhihan Yang, Chong Chen.
+\textit{A Survey on Multimodal Retrieval-Augmented Generation}.
+
+\bibitem{liu2024hmrag}
+Pei Liu, Xin Liu, Ruoyu Yao, Junming Liu, Siyuan Meng, Ding Wang, Jun Ma.
+\textit{HM-RAG: Hierarchical Multi-Agent Multimodal Retrieval Augmented Generation}.
+
+\bibitem{hu2024mrag}
+Chan-Wei Hu, Yueqi Wang, Shuo Xing, Chia-Ju Chen, Suofei Feng, Ryan Rossi, Zhengzhong Tu.
+\textit{mRAG: Elucidating the Design Space of Multi-modal Retrieval-Augmented Generation}.
+
+\bibitem{mao2024multi}
+Mingyang Mao, Mariela M. Perez-Cabarcas, Utteja Kallakuri, Nicholas R. Waytowich, Xiaomin Lin, Tinoosh Mohsenin.
+\textit{Multi-RAG: A Multimodal Retrieval-Augmented Generation System for Adaptive Video Understanding}.
+
+\bibitem{xu2024evrag}
+Zeyu Xu, Junkang Zhang, Qiang Wang, Yi Liu.
+\textit{E-VRAG: Enhancing Long Video Understanding with Resource-Efficient Retrieval Augmented Generation}.
+
+\bibitem{brown2024systematic}
+Andrew Brown, Muhammad Roman, Barry Devereux.
+\textit{A Systematic Literature Review of Retrieval-Augmented Generation: Techniques, Metrics, and Challenges}.
+
+\bibitem{sallinen2024mmore}
+Alexandre Sallinen, Stefan Krsteski, Paul Teiletche, Marc-Antoine Allard, Baptiste Lecoeur, Michael Zhang, David Kalajdzic, Matthias Meyer, Fabrice Nemo, Mary-Anne Hartley.
+\textit{MMORE: Massive Multimodal Open RAG \& Extraction}.
+
+\bibitem{shen2024vgent}
+Xiaoqian Shen, Wenxuan Zhang, Jun Chen, Mohamed Elhoseiny.
+\textit{Vgent: Graph-based Retrieval-Reasoning-Augmented Generation For Long Video Understanding}.
+
+\bibitem{rashmi2024multimodal}
+Rashmi R, Vidyadhar Upadhya.
+\textit{Multimodal RAG for Unstructured Data: Leveraging Modality-Aware Knowledge Graphs with Hybrid Retrieval}.
+
+\bibitem{anugraha2024m4}
+David Anugraha, Patrick Amadeus Irawan, Anshul Singh, En-Shiun Annie Lee, Genta Indra Winata.
+\textit{M4-RAG: A Massive-Scale Multilingual Multi-Cultural Multimodal RAG}.
+
+\bibitem{park2024m3kg}
+Hyeongcheol Park, Jiyoung Seo, Jaewon Mun, Hogun Park, Wonmin Byeon, Sung June Kim, Hyeonsoo Im, JeungSub Lee, Sangpil Kim.
+\textit{M3KG-RAG: Multi-hop Multimodal Knowledge Graph-enhanced Retrieval-Augmented Generation}.
+
+\bibitem{liu2024towards}
+Dong Liu, Yanxuan Yu.
+\textit{Towards Hyper-Efficient RAG Systems in VecDBs: Distributed Parallel Multi-Resolution Vector Search}.
+
+\bibitem{deepeval}
+Confident AI.
+\textit{DeepEval: Open-Source LLM Evaluation Framework}. [Online]. Available: https://deepeval.com/
+
+\bibitem{ollama}
+Ollama.
+\textit{Ollama: Run Large Language Models Locally}. [Online]. Available: https://ollama.com/
+
+\end{thebibliography}
+
+\end{document}

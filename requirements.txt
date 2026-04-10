@@ -15,3 +15,5 @@ ollama
 pydantic
 python-dotenv
 pytest
+deepeval
+matplotlib
