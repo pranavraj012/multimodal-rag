@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <rect width="1080" height="1080" fill="#f7f9fd"/>
+  <rect x="36" y="36" width="1008" height="1008" rx="28" fill="#ffffff" stroke="#d5dff2" stroke-width="4"/>
+
+  <rect x="72" y="80" width="936" height="300" rx="24" fill="#eef3fb" stroke="#cad7ef" stroke-width="3"/>
+  <text x="105" y="126" fill="#163a70" font-family="Arial, sans-serif" font-size="28" font-weight="700">Pipeline</text>
+
+  <rect x="96" y="165" width="150" height="125" rx="22" fill="#ffffff" stroke="#cad7ef" stroke-width="3"/>
+  <text x="138" y="210" fill="#163a70" font-family="Arial, sans-serif" font-size="24" font-weight="700">1. Ingest</text>
+  <text x="124" y="246" fill="#54719f" font-family="Arial, sans-serif" font-size="18">video upload</text>
+  <text x="118" y="272" fill="#54719f" font-family="Arial, sans-serif" font-size="18">audio extract</text>
+
+  <rect x="278" y="165" width="150" height="125" rx="22" fill="#ffffff" stroke="#cad7ef" stroke-width="3"/>
+  <text x="316" y="210" fill="#163a70" font-family="Arial, sans-serif" font-size="24" font-weight="700">2. Extract</text>
+  <text x="307" y="246" fill="#54719f" font-family="Arial, sans-serif" font-size="18">Whisper</text>
+  <text x="301" y="272" fill="#54719f" font-family="Arial, sans-serif" font-size="18">SSIM + OCR</text>
+
+  <rect x="460" y="165" width="150" height="125" rx="22" fill="#ffffff" stroke="#cad7ef" stroke-width="3"/>
+  <text x="509" y="210" fill="#163a70" font-family="Arial, sans-serif" font-size="24" font-weight="700">3. Index</text>
+  <text x="489" y="246" fill="#54719f" font-family="Arial, sans-serif" font-size="18">chunks</text>
+  <text x="478" y="272" fill="#54719f" font-family="Arial, sans-serif" font-size="18">embeddings</text>
+
+  <rect x="642" y="165" width="150" height="125" rx="22" fill="#ffffff" stroke="#cad7ef" stroke-width="3"/>
+  <text x="676" y="210" fill="#163a70" font-family="Arial, sans-serif" font-size="24" font-weight="700">4. Retrieve</text>
+  <text x="694" y="246" fill="#54719f" font-family="Arial, sans-serif" font-size="18">routing</text>
+  <text x="667" y="272" fill="#54719f" font-family="Arial, sans-serif" font-size="18">text + visual</text>
+
+  <rect x="824" y="165" width="160" height="125" rx="22" fill="#ffffff" stroke="#cad7ef" stroke-width="3"/>
+  <text x="846" y="210" fill="#163a70" font-family="Arial, sans-serif" font-size="24" font-weight="700">5. Generate</text>
+  <text x="865" y="246" fill="#54719f" font-family="Arial, sans-serif" font-size="18">answer</text>
+  <text x="849" y="272" fill="#54719f" font-family="Arial, sans-serif" font-size="18">timestamps</text>
+
+  <line x1="246" y1="228" x2="278" y2="228" stroke="#90a8d1" stroke-width="8" stroke-linecap="round"/>
+  <polygon points="260,213 281,228 260,243" fill="#90a8d1"/>
+  <line x1="428" y1="228" x2="460" y2="228" stroke="#90a8d1" stroke-width="8" stroke-linecap="round"/>
+  <polygon points="442,213 463,228 442,243" fill="#90a8d1"/>
+  <line x1="610" y1="228" x2="642" y2="228" stroke="#90a8d1" stroke-width="8" stroke-linecap="round"/>
+  <polygon points="624,213 645,228 624,243" fill="#90a8d1"/>
+  <line x1="792" y1="228" x2="824" y2="228" stroke="#90a8d1" stroke-width="8" stroke-linecap="round"/>
+  <polygon points="806,213 827,228 806,243" fill="#90a8d1"/>
+
+  <rect x="72" y="420" width="936" height="185" rx="24" fill="#173d7a"/>
+  <text x="108" y="475" fill="#ffffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">Core idea</text>
+  <text x="108" y="525" fill="#d9e6ff" font-family="Arial, sans-serif" font-size="26">Use both spoken content and visual evidence,</text>
+  <text x="108" y="560" fill="#d9e6ff" font-family="Arial, sans-serif" font-size="26">then generate answers only from retrieved lecture context.</text>
+
+  <rect x="72" y="645" width="936" height="335" rx="24" fill="#eef3fb" stroke="#cad7ef" stroke-width="3"/>
+  <text x="108" y="698" fill="#163a70" font-family="Arial, sans-serif" font-size="30" font-weight="700">Technical stack</text>
+
+  <rect x="108" y="740" width="155" height="42" rx="21" fill="#ffffff"/>
+  <text x="152" y="767" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">Python</text>
+  <rect x="283" y="740" width="170" height="42" rx="21" fill="#ffffff"/>
+  <text x="335" y="767" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">FastAPI</text>
+  <rect x="473" y="740" width="220" height="42" rx="21" fill="#ffffff"/>
+  <text x="519" y="767" fill="#173d7a" font-family="Arial, sans-serif" font-size="19" font-weight="700">Faster-Whisper</text>
+  <rect x="713" y="740" width="175" height="42" rx="21" fill="#ffffff"/>
+  <text x="758" y="767" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">ChromaDB</text>
+
+  <rect x="108" y="805" width="185" height="42" rx="21" fill="#ffffff"/>
+  <text x="154" y="832" fill="#173d7a" font-family="Arial, sans-serif" font-size="19" font-weight="700">NetworkX</text>
+  <rect x="313" y="805" width="125" height="42" rx="21" fill="#ffffff"/>
+  <text x="353" y="832" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">OCR</text>
+  <rect x="458" y="805" width="190" height="42" rx="21" fill="#ffffff"/>
+  <text x="500" y="832" fill="#173d7a" font-family="Arial, sans-serif" font-size="19" font-weight="700">Embeddings</text>
+  <rect x="668" y="805" width="145" height="42" rx="21" fill="#ffffff"/>
+  <text x="709" y="832" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">Graph</text>
+  <rect x="833" y="805" width="125" height="42" rx="21" fill="#ffffff"/>
+  <text x="868" y="832" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">React</text>
+
+  <rect x="220" y="870" width="160" height="42" rx="21" fill="#ffffff"/>
+  <text x="265" y="897" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">Ollama</text>
+  <rect x="400" y="870" width="145" height="42" rx="21" fill="#ffffff"/>
+  <text x="440" y="897" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">Gemini</text>
+  <rect x="565" y="870" width="290" height="42" rx="21" fill="#ffffff"/>
+  <text x="611" y="897" fill="#173d7a" font-family="Arial, sans-serif" font-size="18" font-weight="700">Sentence Transformers</text>
+
+  <rect x="108" y="940" width="820" height="18" rx="9" fill="#d9e6ff"/>
+  <rect x="108" y="940" width="820" height="18" rx="9" fill="#7fd1ff" opacity="0.55"/>
+</svg>

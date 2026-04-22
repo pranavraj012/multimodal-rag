@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300">
+  <rect width="1200" height="300" fill="#f7f9fd"/>
+  <rect x="20" y="20" width="1160" height="260" rx="20" fill="#ffffff" stroke="#d5dff2" stroke-width="4"/>
+
+  <!-- Block 1: Better Access -->
+  <rect x="40" y="40" width="360" height="150" rx="16" fill="#eef3fb" stroke="#cad7ef" stroke-width="2"/>
+  <g transform="translate(-96.5, -115) scale(0.9)">
+    <circle cx="235" cy="250" r="52" fill="#173d7a"/>
+    <path d="M212 250l18 18 34-38" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="175" y="80" fill="#163a70" font-family="Arial, sans-serif" font-size="22" font-weight="700">Better access</text>
+  <text x="175" y="115" fill="#54719f" font-family="Arial, sans-serif" font-size="18">Students can ask natural</text>
+  <text x="175" y="140" fill="#54719f" font-family="Arial, sans-serif" font-size="18">questions and jump to</text>
+  <text x="175" y="165" fill="#54719f" font-family="Arial, sans-serif" font-size="18">the explanation quickly.</text>
+
+  <!-- Block 2: Grounded Answers -->
+  <rect x="420" y="40" width="360" height="150" rx="16" fill="#eef3fb" stroke="#cad7ef" stroke-width="2"/>
+  <g transform="translate(-45, -115) scale(0.9)">
+    <circle cx="600" cy="250" r="52" fill="#173d7a"/>
+    <rect x="565" y="225" width="70" height="48" rx="8" fill="#ffffff"/>
+    <rect x="575" y="285" width="50" height="10" rx="5" fill="#ffcf5b"/>
+  </g>
+  <text x="555" y="80" fill="#163a70" font-family="Arial, sans-serif" font-size="22" font-weight="700">Grounded answers</text>
+  <text x="555" y="115" fill="#54719f" font-family="Arial, sans-serif" font-size="18">Responses are tied to</text>
+  <text x="555" y="140" fill="#54719f" font-family="Arial, sans-serif" font-size="18">retrieved evidence and</text>
+  <text x="555" y="165" fill="#54719f" font-family="Arial, sans-serif" font-size="18">timestamped video.</text>
+
+  <!-- Block 3: Next step -->
+  <rect x="800" y="40" width="360" height="150" rx="16" fill="#eef3fb" stroke="#cad7ef" stroke-width="2"/>
+  <g transform="translate(6.5, -115) scale(0.9)">
+    <circle cx="965" cy="250" r="52" fill="#173d7a"/>
+    <path d="M938 270c20-30 42-50 54-50" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+    <path d="M985 210l18 10-12 17" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="935" y="80" fill="#163a70" font-family="Arial, sans-serif" font-size="22" font-weight="700">Next step</text>
+  <text x="935" y="115" fill="#54719f" font-family="Arial, sans-serif" font-size="18">Improve reranking,</text>
+  <text x="935" y="140" fill="#54719f" font-family="Arial, sans-serif" font-size="18">expand benchmark, and</text>
+  <text x="935" y="165" fill="#54719f" font-family="Arial, sans-serif" font-size="18">add stronger models.</text>
+
+  <!-- Final message banner -->
+  <rect x="40" y="210" width="1120" height="50" rx="12" fill="#173d7a"/>
+  <text x="600" y="242" fill="#ffffff" font-family="Arial, sans-serif" font-size="20" text-anchor="middle">Educational videos should not behave like static archives. EduRAG turns them into interactive learning tools.</text>
+</svg>

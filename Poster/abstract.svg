@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <rect width="1200" height="760" fill="#f7f9fd"/>
+  <rect x="40" y="40" width="1120" height="680" rx="28" fill="#ffffff" stroke="#d5dff2" stroke-width="4"/>
+  <text x="70" y="95" fill="#163a70" font-family="Arial, sans-serif" font-size="32" font-weight="700">EduRAG turns lecture videos into</text>
+  <text x="70" y="130" fill="#163a70" font-family="Arial, sans-serif" font-size="32" font-weight="700">searchable learning material</text>
+  <text x="70" y="165" fill="#54719f" font-family="Arial, sans-serif" font-size="20">A multimodal RAG system for question answering with timestamps</text>
+
+  <rect x="85" y="205" width="300" height="235" rx="24" fill="#eef3fb" stroke="#cad7ef" stroke-width="3"/>
+  <circle cx="235" cy="265" r="58" fill="#173d7a"/>
+  <rect x="195" y="236" width="80" height="58" rx="8" fill="#ffffff"/>
+  <rect x="205" y="308" width="60" height="10" rx="5" fill="#ffcf5b"/>
+  <text x="145" y="375" fill="#163a70" font-family="Arial, sans-serif" font-size="30" font-weight="700">1. Ingest</text>
+  <text x="125" y="410" fill="#54719f" font-family="Arial, sans-serif" font-size="22">Speech + keyframes + OCR</text>
+
+  <rect x="450" y="205" width="300" height="235" rx="24" fill="#eef3fb" stroke="#cad7ef" stroke-width="3"/>
+  <circle cx="600" cy="265" r="58" fill="#173d7a"/>
+  <rect x="560" y="235" width="80" height="12" rx="6" fill="#ffffff"/>
+  <rect x="560" y="255" width="80" height="12" rx="6" fill="#7fd1ff"/>
+  <rect x="560" y="275" width="80" height="12" rx="6" fill="#8be0ae"/>
+  <text x="510" y="375" fill="#163a70" font-family="Arial, sans-serif" font-size="30" font-weight="700">2. Retrieve</text>
+  <text x="510" y="410" fill="#54719f" font-family="Arial, sans-serif" font-size="22">Transcript + visual evidence</text>
+
+  <rect x="815" y="205" width="300" height="235" rx="24" fill="#eef3fb" stroke="#cad7ef" stroke-width="3"/>
+  <circle cx="965" cy="265" r="58" fill="#173d7a"/>
+  <path d="M935 268h58" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+  <path d="M968 238l30 30-30 30" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="885" y="375" fill="#163a70" font-family="Arial, sans-serif" font-size="30" font-weight="700">3. Answer</text>
+  <text x="865" y="410" fill="#54719f" font-family="Arial, sans-serif" font-size="22">Grounded response + timestamps</text>
+
+  <line x1="385" y1="265" x2="450" y2="265" stroke="#90a8d1" stroke-width="8" stroke-linecap="round"/>
+  <polygon points="435,248 460,265 435,282" fill="#90a8d1"/>
+  <line x1="750" y1="265" x2="815" y2="265" stroke="#90a8d1" stroke-width="8" stroke-linecap="round"/>
+  <polygon points="800,248 825,265 800,282" fill="#90a8d1"/>
+
+  <rect x="90" y="500" width="1020" height="150" rx="24" fill="#173d7a"/>
+  <text x="130" y="555" fill="#ffffff" font-family="Arial, sans-serif" font-size="28" font-weight="700">What the user gets</text>
+  <rect x="130" y="580" width="240" height="40" rx="20" fill="#ffffff"/>
+  <text x="145" y="607" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">Natural-language QA</text>
+  <rect x="390" y="580" width="230" height="40" rx="20" fill="#ffffff"/>
+  <text x="405" y="607" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">Evidence grounding</text>
+  <rect x="640" y="580" width="220" height="40" rx="20" fill="#ffffff"/>
+  <text x="655" y="607" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">Jump-to timestamps</text>
+  <rect x="880" y="580" width="150" height="40" rx="20" fill="#ffffff"/>
+  <text x="905" y="607" fill="#173d7a" font-family="Arial, sans-serif" font-size="20" font-weight="700">Follow-ups</text>
+</svg>

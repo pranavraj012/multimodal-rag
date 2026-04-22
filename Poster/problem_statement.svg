@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="400" viewBox="0 0 1100 400">
+  <rect width="1100" height="400" fill="#f7f9fd"/>
+  <rect x="24" y="24" width="1052" height="352" rx="26" fill="#ffffff" stroke="#d5dff2" stroke-width="4"/>
+
+  <rect x="48" y="56" width="300" height="190" rx="22" fill="#eef3fb" stroke="#cad7ef" stroke-width="3"/>
+  <rect x="78" y="86" width="240" height="120" rx="18" fill="#173d7a"/>
+  <polygon points="165,112 165,180 225,146" fill="#ffffff"/>
+  <rect x="96" y="218" width="80" height="10" rx="5" fill="#ffcf5b"/>
+  <rect x="186" y="218" width="62" height="10" rx="5" fill="#7fd1ff"/>
+  <rect x="258" y="218" width="42" height="10" rx="5" fill="#8be0ae"/>
+
+  <circle cx="382" cy="88" r="34" fill="#eef3fb" stroke="#cad7ef" stroke-width="3"/>
+  <circle cx="382" cy="82" r="12" fill="#173d7a"/>
+  <path d="M359 122c10-19 21-28 23-28s13 9 23 28" fill="#173d7a"/>
+
+  <circle cx="462" cy="88" r="34" fill="#eef3fb" stroke="#cad7ef" stroke-width="3"/>
+  <circle cx="462" cy="88" r="18" fill="none" stroke="#173d7a" stroke-width="7"/>
+  <line x1="462" y1="88" x2="462" y2="76" stroke="#173d7a" stroke-width="7" stroke-linecap="round"/>
+  <line x1="462" y1="88" x2="474" y2="96" stroke="#173d7a" stroke-width="7" stroke-linecap="round"/>
+
+  <line x1="348" y1="151" x2="373" y2="105" stroke="#90a8d1" stroke-width="4" stroke-linecap="round"/>
+  <line x1="348" y1="151" x2="438" y2="98" stroke="#90a8d1" stroke-width="4" stroke-linecap="round"/>
+
+  <text x="520" y="102" fill="#163a70" font-family="Arial, sans-serif" font-size="30" font-weight="700">Problem Statement</text>
+  <text x="382" y="145" fill="#54719f" font-family="Arial, sans-serif" font-size="22">Long lecture videos are difficult to search precisely.</text>
+  <text x="382" y="178" fill="#54719f" font-family="Arial, sans-serif" font-size="22">Students remember fragments like a diagram, code snippet,</text>
+  <text x="382" y="211" fill="#54719f" font-family="Arial, sans-serif" font-size="22">or spoken phrase, but not the exact timestamp.</text>
+
+  <rect x="382" y="245" width="655" height="90" rx="20" fill="#173d7a"/>
+  <circle cx="412" cy="286" r="7" fill="#ffcf5b"/>
+  <text x="430" y="292" fill="#ffffff" font-family="Arial, sans-serif" font-size="20">Transcript-only search misses visual and time-dependent explanations.</text>
+  <circle cx="412" cy="322" r="7" fill="#7fd1ff"/>
+  <text x="430" y="328" fill="#ffffff" font-family="Arial, sans-serif" font-size="20">Revision becomes slow because learners must rewatch large parts of the video.</text>
+
+  <rect x="48" y="270" width="300" height="70" rx="18" fill="#fff8e7" stroke="#f0d27d" stroke-width="3"/>
+  <text x="74" y="300" fill="#8d6400" font-family="Arial, sans-serif" font-size="18" font-weight="700">Need</text>
+  <text x="74" y="325" fill="#594200" font-family="Arial, sans-serif" font-size="18">Find the exact explanation in seconds,</text>
+  <text x="74" y="347" fill="#594200" font-family="Arial, sans-serif" font-size="18">not after watching the whole lecture again.</text>
+</svg>
